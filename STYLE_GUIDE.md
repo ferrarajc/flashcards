@@ -40,6 +40,35 @@
 
 ---
 
+## Responsive Layout
+
+### Breakpoints
+- **Phone**: < 600px — full width, hamburger menu for sidebar
+- **Tablet**: 600–1024px — sidebar always visible
+- **Desktop**: > 1024px — sidebar always visible, wider content area
+
+### Content max-width
+- **Main content area**: max 680px, centered within available space
+- **Phone**: full width (no max-width cap)
+
+### Sidebar
+- **Phone**: hidden by default, opened via hamburger icon
+- **Tablet / Desktop**: permanently visible (`drawerType="permanent"`)
+
+### Header
+- **Logo**: left-aligned in header, links to Home
+- **Global nav**: right side of header (desktop/tablet), hamburger reveals on phone
+- **User avatar**: far right of header (future)
+
+### Buttons
+- **Never full width** — buttons should be sized to their content or capped with a max-width
+- **Primary action button**: max-width 340px, centered
+
+### Learn mode (quiz)
+- **Fullscreen** — no nav bar, no sidebar, distraction-free
+
+---
+
 ## Spacing & Layout
 
 ### Screen padding
