@@ -34,7 +34,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My Flashcard Decks</Text>
+      <Text style={styles.title}>My Decks</Text>
 
       {decks.length === 0 ? (
         <Text style={styles.empty}>No decks yet. Create one!</Text>
