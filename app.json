@@ -23,7 +23,12 @@
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "splash": {
+        "image": "./assets/splash-icon-wide.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#0a1a5c"
+      }
     }
   }
 }
