@@ -30,7 +30,7 @@ export default function HomeScreen({ navigation }) {
   const deleteDeck = (deck) => {
     Alert.alert(
       `Delete "${deck.name}"`,
-      'This action cannot be undone.',
+      'Are you sure?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
