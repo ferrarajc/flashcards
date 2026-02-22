@@ -16,7 +16,7 @@ export default function App() {
         <Stack.Screen
           name="Home"
           component={HomeScreen}
-          options={{ title: 'Flashcards' }}
+          options={{ title: 'FlashyCards' }}
         />
         <Stack.Screen
           name="CreateDeck"
