@@ -60,6 +60,7 @@ export default function HomeScreen({ navigation }) {
   const showMenu = (deck) => {
     ActionSheetIOS.showActionSheetWithOptions(
       {
+        title: deck.name,
         options: ['Cancel', 'Learn', 'Rename', 'Edit', 'Delete'],
         cancelButtonIndex: 0,
         destructiveButtonIndex: 4,
@@ -147,8 +148,8 @@ const styles = StyleSheet.create({
   deckName: { fontSize: 18, fontWeight: '600' },
   deckCount: { fontSize: 13, color: '#888', marginTop: 4 },
   divider: { width: 1, height: '60%', backgroundColor: '#e0e0e0' },
-  menuBtn: { paddingHorizontal: 16, paddingVertical: 16 },
-  menuDots: { fontSize: 18, color: '#555', letterSpacing: 2 },
+  menuBtn: { paddingHorizontal: 10, paddingVertical: 16 },
+  menuDots: { fontSize: 14, color: '#555', letterSpacing: 2 },
   createButton: {
     backgroundColor: '#4a90e2', padding: 16, borderRadius: 12,
     alignItems: 'center', marginTop: 20,
