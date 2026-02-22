@@ -6,6 +6,7 @@ import HomeScreen from './screens/HomeScreen';
 import CreateDeckScreen from './screens/CreateDeckScreen';
 import QuizScreen from './screens/QuizScreen';
 import EndScreen from './screens/EndScreen';
+import EditDeckScreen from './screens/EditDeckScreen';
 
 const Stack = createStackNavigator();
 
@@ -32,6 +33,11 @@ export default function App() {
           name="End"
           component={EndScreen}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="EditDeck"
+          component={EditDeckScreen}
+          options={({ route }) => ({ title: route.params.deck.name })}
         />
       </Stack.Navigator>
     </NavigationContainer>
