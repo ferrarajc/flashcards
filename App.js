@@ -7,6 +7,7 @@ import CreateDeckScreen from './screens/CreateDeckScreen';
 import QuizScreen from './screens/QuizScreen';
 import EndScreen from './screens/EndScreen';
 import EditDeckScreen from './screens/EditDeckScreen';
+import AppHeader from './components/AppHeader';
 
 const Stack = createStackNavigator();
 
@@ -17,7 +18,9 @@ export default function App() {
         <Stack.Screen
           name="Home"
           component={HomeScreen}
-          options={{ title: 'FlashyCards' }}
+          options={({ navigation }) => ({
+            header: () => <AppHeader navigation={navigation} />,
+          })}
         />
         <Stack.Screen
           name="CreateDeck"

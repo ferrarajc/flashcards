@@ -56,9 +56,12 @@
 - **Tablet / Desktop**: permanently visible (`drawerType="permanent"`)
 
 ### Header
-- **Logo**: left-aligned in header, links to Home
-- **Global nav**: right side of header (desktop/tablet), hamburger reveals on phone
+- **Height**: 64px
+- **Background**: white, with 1px bottom border (`#e0e0e0`)
+- **Logo**: left-aligned, 160×44px on desktop/tablet, 130×36px on phone — tapping navigates to Home
+- **Right side**: hamburger icon on phone (3 bars, 22px wide, `#333`), reserved for nav links on desktop/tablet
 - **User avatar**: far right of header (future)
+- **Logo file**: `assets/Logo.png`
 
 ### Buttons
 - **Never full width** — buttons should be sized to their content or capped with a max-width
