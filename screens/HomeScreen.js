@@ -34,7 +34,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My Decks</Text>
+      <Text style={styles.title}>My decks</Text>
 
       {decks.length === 0 ? (
         <Text style={styles.empty}>No decks yet. Create one!</Text>
@@ -71,7 +71,7 @@ export default function HomeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#f5f5f5' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, marginTop: 10 },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, marginTop: 10, textAlign: 'center' },
   empty: { color: '#999', fontSize: 16, textAlign: 'center', marginTop: 60 },
   deckRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   deckButton: {
