@@ -31,3 +31,7 @@
 
 ## Style guide
 - See STYLE_GUIDE.md for UI and copy standards
+- **The style guide must be kept up to date at all times**
+- Any design decision made during development must be recorded in STYLE_GUIDE.md
+- Style guide updates should be committed in the same PR as the change that prompted them
+- When iterating on UI during a PR review, update the style guide before merging
