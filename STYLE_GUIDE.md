@@ -52,8 +52,12 @@
 - **Phone**: full width (no max-width cap)
 
 ### Sidebar
-- **Phone**: hidden by default, opened via hamburger icon
-- **Tablet / Desktop**: permanently visible (`drawerType="permanent"`)
+- **Width**: 240px
+- **Phone**: hidden by default, opened via hamburger icon in nav bar (`drawerType="front"`)
+- **Tablet / Desktop**: permanently visible (`drawerType="permanent"`), AppHeader spans full width above it
+- **Nav items**: My decks (→ Home), New deck (→ CreateDeck)
+- **Item text**: 16px, semibold
+- **New deck text color**: primary blue `#4a90e2`
 
 ### Header
 - **Shown on**: tablet and desktop only — phone uses default nav bar with "FlashyCards" text title

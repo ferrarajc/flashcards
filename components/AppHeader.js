@@ -1,13 +1,10 @@
 import React from 'react';
 import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
-export default function AppHeader({ navigation }) {
+export default function AppHeader({ onHomePress }) {
   return (
     <View style={styles.header}>
-      <TouchableOpacity
-        onPress={() => navigation.navigate('Home')}
-        activeOpacity={0.8}
-      >
+      <TouchableOpacity onPress={onHomePress} activeOpacity={0.8}>
         <Image
           source={require('../assets/Logo.png')}
           style={styles.logo}
@@ -16,7 +13,7 @@ export default function AppHeader({ navigation }) {
       </TouchableOpacity>
 
       <View style={styles.right}>
-        {/* Global nav links — issue #11 */}
+        {/* Global nav links — future */}
       </View>
     </View>
   );
