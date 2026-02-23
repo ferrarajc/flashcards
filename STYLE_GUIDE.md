@@ -57,10 +57,10 @@
 
 ### Header
 - **Shown on**: tablet and desktop only — phone uses default nav bar with "FlashyCards" text title
-- **Height**: 72px
+- **Height**: 100px
 - **Background**: `#fcfdfc` (matches logo background)
 - **Bottom border**: 1px, `#e0e0e0`
-- **Logo**: left-aligned, 220×58px, tapping navigates to Home
+- **Logo**: left-aligned, 380×88px, tapping navigates to Home
 - **Right side**: reserved for global nav links (future)
 - **User avatar**: far right of header (future)
 - **Logo file**: `assets/Logo.png`

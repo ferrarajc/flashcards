@@ -24,7 +24,7 @@ export default function AppHeader({ navigation }) {
 
 const styles = StyleSheet.create({
   header: {
-    height: 72,
+    height: 100,
     backgroundColor: '#fcfdfc',
     flexDirection: 'row',
     alignItems: 'center',
@@ -34,8 +34,8 @@ const styles = StyleSheet.create({
     borderBottomColor: '#e0e0e0',
   },
   logo: {
-    width: 220,
-    height: 58,
+    width: 380,
+    height: 88,
   },
   right: {
     flexDirection: 'row',
