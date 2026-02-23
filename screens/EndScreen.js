@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import ScreenContainer from '../components/ScreenContainer';
 
 export default function EndScreen({ route, navigation }) {
   const { deckName, total } = route.params;
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.centered}>
       <Text style={styles.emoji}>🎉</Text>
-      <Text style={styles.title}>Deck Complete!</Text>
+      <Text style={styles.title}>Deck complete!</Text>
       <Text style={styles.subtitle}>You went through all {total} cards in</Text>
       <Text style={styles.deckName}>"{deckName}"</Text>
 
@@ -15,16 +16,16 @@ export default function EndScreen({ route, navigation }) {
         style={styles.button}
         onPress={() => navigation.navigate('Home')}
       >
-        <Text style={styles.buttonText}>Back to Decks</Text>
+        <Text style={styles.buttonText}>Back to decks</Text>
       </TouchableOpacity>
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1, backgroundColor: '#f5f5f5',
-    alignItems: 'center', justifyContent: 'center', padding: 30,
+  centered: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emoji: { fontSize: 64, marginBottom: 16 },
   title: { fontSize: 32, fontWeight: 'bold', marginBottom: 12 },

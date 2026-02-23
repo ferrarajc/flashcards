@@ -1,19 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
+import ScreenContainer from '../components/ScreenContainer';
 
 export default function EditDeckScreen({ route }) {
   const { deck } = route.params;
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.centered}>
       <Text style={styles.title}>Edit "{deck.name}"</Text>
       <Text style={styles.subtitle}>Coming soon</Text>
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5' },
+  centered: { alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 22, fontWeight: '600', marginBottom: 12 },
   subtitle: { fontSize: 16, color: '#999' },
 });

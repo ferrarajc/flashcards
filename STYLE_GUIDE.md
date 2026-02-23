@@ -71,7 +71,12 @@
 
 ### Buttons
 - **Never full width** — buttons should be sized to their content or capped with a max-width
-- **Primary action button**: max-width 340px, centered
+- **Primary action button**: max-width 340px, `alignSelf: 'center'`, `width: '100%'`
+
+### Quiz card
+- **Width**: `Math.min(screenWidth - 40, 640px)` — full width on phone, capped on desktop
+- **Height**: 45% of screen height
+- Uses `useWindowDimensions` (not static `Dimensions`) so it responds to window size
 
 ### Learn mode (quiz)
 - **Fullscreen** — no nav bar, no sidebar, distraction-free
