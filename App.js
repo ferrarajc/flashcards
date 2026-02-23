@@ -36,7 +36,7 @@ export default function App() {
         <Stack.Screen
           name="Quiz"
           component={QuizScreen}
-          options={({ route }) => ({ title: route.params.deck.name })}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="End"
