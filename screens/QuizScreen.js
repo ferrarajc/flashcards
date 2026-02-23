@@ -1,17 +1,21 @@
 import React, { useState, useRef, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions
+  View, Text, TouchableOpacity, StyleSheet, Animated, useWindowDimensions
 } from 'react-native';
 
-const { width } = Dimensions.get('window');
-const CARD_HEIGHT = Dimensions.get('window').height * 0.45;
 const CARD_PADDING = 24;
-const TEXT_WIDTH = width - 40 - CARD_PADDING * 2;
+const MAX_CARD_WIDTH = 640;
 const MAX_FONT = 28;
 const MIN_FONT = 8;
 
 export default function QuizScreen({ route, navigation }) {
   const { deck } = route.params;
+  const { width, height } = useWindowDimensions();
+
+  const cardWidth = Math.min(width - 40, MAX_CARD_WIDTH);
+  const cardHeight = height * 0.45;
+  const textWidth = cardWidth - CARD_PADDING * 2;
+
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [frontSize, setFrontSize] = useState(MAX_FONT);
@@ -19,19 +23,16 @@ export default function QuizScreen({ route, navigation }) {
   const frontSizeRef = useRef(MAX_FONT);
   const backSizeRef = useRef(MAX_FONT);
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const availableHeight = useRef(CARD_HEIGHT - CARD_PADDING * 2);
+  const availableHeight = useRef(cardHeight - CARD_PADDING * 2);
 
   const card = deck.cards[index];
   const isLast = index === deck.cards.length - 1;
 
-  // Reset font sizes when card changes
   const prevIndex = useRef(index);
   if (prevIndex.current !== index) {
     prevIndex.current = index;
     frontSizeRef.current = MAX_FONT;
     backSizeRef.current = MAX_FONT;
-    // We set state below via useEffect equiv - but we can't call setState during render
-    // Instead we key the hidden texts to force remeasure
   }
 
   const handleFrontLayout = useCallback((e) => {
@@ -85,17 +86,17 @@ export default function QuizScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Hidden measurement texts — off screen, measure both faces */}
+      {/* Hidden measurement texts */}
       <Text
         key={`f-${index}`}
-        style={[styles.measureText, { fontSize: frontSize }]}
+        style={[styles.measureText, { fontSize: frontSize, width: textWidth }]}
         onTextLayout={handleFrontLayout}
       >
         {card.front}
       </Text>
       <Text
         key={`b-${index}`}
-        style={[styles.measureText, { fontSize: backSize }]}
+        style={[styles.measureText, { fontSize: backSize, width: textWidth }]}
         onTextLayout={handleBackLayout}
       >
         {card.back}
@@ -105,7 +106,11 @@ export default function QuizScreen({ route, navigation }) {
       <Text style={styles.deckName}>{deck.name}</Text>
       <Text style={styles.hint}>{flipped ? 'Showing: Back' : 'Tap card to flip'}</Text>
 
-      <TouchableOpacity onPress={flip} activeOpacity={0.9} style={styles.cardContainer}>
+      <TouchableOpacity
+        onPress={flip}
+        activeOpacity={0.9}
+        style={[styles.cardContainer, { width: cardWidth, height: cardHeight }]}
+      >
         <Animated.View
           style={[styles.card, cardStyle, { transform: [{ scaleX: scaleAnim }] }]}
           onLayout={handleCardLayout}
@@ -131,7 +136,6 @@ const styles = StyleSheet.create({
   measureText: {
     position: 'absolute',
     top: -9999,
-    width: TEXT_WIDTH,
     textAlign: 'center',
     fontWeight: '500',
     opacity: 0,
@@ -139,7 +143,7 @@ const styles = StyleSheet.create({
   progress: { fontSize: 14, color: '#888', marginBottom: 4 },
   deckName: { fontSize: 20, fontWeight: '700', marginBottom: 4 },
   hint: { fontSize: 13, color: '#aaa', marginBottom: 20 },
-  cardContainer: { width: width - 40, height: CARD_HEIGHT },
+  cardContainer: {},
   card: {
     width: '100%', height: '100%',
     borderRadius: 16, padding: CARD_PADDING,
