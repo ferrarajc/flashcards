@@ -1,10 +1,7 @@
 import React from 'react';
 import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { useBreakpoint } from '../hooks/useBreakpoint';
 
-export default function AppHeader({ navigation, onHamburgerPress }) {
-  const { isPhone } = useBreakpoint();
-
+export default function AppHeader({ navigation }) {
   return (
     <View style={styles.header}>
       <TouchableOpacity
@@ -13,19 +10,13 @@ export default function AppHeader({ navigation, onHamburgerPress }) {
       >
         <Image
           source={require('../assets/Logo.png')}
-          style={[styles.logo, isPhone && styles.logoPhone]}
+          style={styles.logo}
           resizeMode="contain"
         />
       </TouchableOpacity>
 
       <View style={styles.right}>
-        {isPhone && onHamburgerPress && (
-          <TouchableOpacity onPress={onHamburgerPress} style={styles.hamburger}>
-            <View style={styles.bar} />
-            <View style={styles.bar} />
-            <View style={styles.bar} />
-          </TouchableOpacity>
-        )}
+        {/* Global nav links — issue #11 */}
       </View>
     </View>
   );
@@ -33,35 +24,21 @@ export default function AppHeader({ navigation, onHamburgerPress }) {
 
 const styles = StyleSheet.create({
   header: {
-    height: 64,
-    backgroundColor: '#fff',
+    height: 72,
+    backgroundColor: '#fcfdfc',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
   logo: {
-    width: 160,
-    height: 44,
-  },
-  logoPhone: {
-    width: 130,
-    height: 36,
+    width: 220,
+    height: 58,
   },
   right: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  hamburger: {
-    padding: 8,
-    gap: 5,
-  },
-  bar: {
-    width: 22,
-    height: 2,
-    backgroundColor: '#333',
-    borderRadius: 2,
   },
 });

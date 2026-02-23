@@ -1,4 +1,5 @@
 import React from 'react';
+import { useWindowDimensions } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -8,19 +9,24 @@ import QuizScreen from './screens/QuizScreen';
 import EndScreen from './screens/EndScreen';
 import EditDeckScreen from './screens/EditDeckScreen';
 import AppHeader from './components/AppHeader';
+import { BREAKPOINTS } from './hooks/useBreakpoint';
 
 const Stack = createStackNavigator();
 
 export default function App() {
+  const { width } = useWindowDimensions();
+  const isPhone = width < BREAKPOINTS.phone;
+
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen
           name="Home"
           component={HomeScreen}
-          options={({ navigation }) => ({
-            header: () => <AppHeader navigation={navigation} />,
-          })}
+          options={({ navigation }) => isPhone
+            ? { title: 'FlashyCards' }
+            : { header: () => <AppHeader navigation={navigation} /> }
+          }
         />
         <Stack.Screen
           name="CreateDeck"

@@ -56,10 +56,12 @@
 - **Tablet / Desktop**: permanently visible (`drawerType="permanent"`)
 
 ### Header
-- **Height**: 64px
-- **Background**: white, with 1px bottom border (`#e0e0e0`)
-- **Logo**: left-aligned, 160×44px on desktop/tablet, 130×36px on phone — tapping navigates to Home
-- **Right side**: hamburger icon on phone (3 bars, 22px wide, `#333`), reserved for nav links on desktop/tablet
+- **Shown on**: tablet and desktop only — phone uses default nav bar with "FlashyCards" text title
+- **Height**: 72px
+- **Background**: `#fcfdfc` (matches logo background)
+- **Bottom border**: 1px, `#e0e0e0`
+- **Logo**: left-aligned, 220×58px, tapping navigates to Home
+- **Right side**: reserved for global nav links (future)
 - **User avatar**: far right of header (future)
 - **Logo file**: `assets/Logo.png`
 
