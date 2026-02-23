@@ -19,13 +19,13 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator>
         <Stack.Screen
           name="Home"
           component={HomeScreen}
           options={({ navigation }) => isPhone
             ? { title: 'FlashyCards' }
-            : { header: () => <AppHeader navigation={navigation} /> }
+            : { header: () => <AppHeader onHomePress={() => navigation.navigate('Home')} /> }
           }
         />
         <Stack.Screen
