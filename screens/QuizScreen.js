@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, Animated, useWindowDimensions
+  View, Text, TouchableOpacity, StyleSheet, Animated, useWindowDimensions,
+  Alert, SafeAreaView
 } from 'react-native';
 
 const CARD_PADDING = 24;
@@ -78,6 +79,17 @@ export default function QuizScreen({ route, navigation }) {
     }
   };
 
+  const exitQuiz = () => {
+    Alert.alert(
+      'Exit session?',
+      'Your progress won\'t be saved.',
+      [
+        { text: 'Keep going', style: 'cancel' },
+        { text: 'Exit', style: 'destructive', onPress: () => navigation.navigate('Home') },
+      ]
+    );
+  };
+
   const isBack = flipped;
   const cardStyle = isBack ? styles.cardBack : styles.cardFront;
   const displayText = isBack ? card.back : card.front;
@@ -85,50 +97,61 @@ export default function QuizScreen({ route, navigation }) {
   const textColor = isBack ? '#fff' : '#222';
 
   return (
-    <View style={styles.container}>
-      {/* Hidden measurement texts */}
-      <Text
-        key={`f-${index}`}
-        style={[styles.measureText, { fontSize: frontSize, width: textWidth }]}
-        onTextLayout={handleFrontLayout}
-      >
-        {card.front}
-      </Text>
-      <Text
-        key={`b-${index}`}
-        style={[styles.measureText, { fontSize: backSize, width: textWidth }]}
-        onTextLayout={handleBackLayout}
-      >
-        {card.back}
-      </Text>
-
-      <Text style={styles.progress}>{index + 1} / {deck.cards.length}</Text>
-      <Text style={styles.deckName}>{deck.name}</Text>
-      <Text style={styles.hint}>{flipped ? 'Showing: Back' : 'Tap card to flip'}</Text>
-
-      <TouchableOpacity
-        onPress={flip}
-        activeOpacity={0.9}
-        style={[styles.cardContainer, { width: cardWidth, height: cardHeight }]}
-      >
-        <Animated.View
-          style={[styles.card, cardStyle, { transform: [{ scaleX: scaleAnim }] }]}
-          onLayout={handleCardLayout}
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Hidden measurement texts */}
+        <Text
+          key={`f-${index}`}
+          style={[styles.measureText, { fontSize: frontSize, width: textWidth }]}
+          onTextLayout={handleFrontLayout}
         >
-          <Text style={[styles.cardText, { fontSize: displayFontSize, color: textColor }]}>
-            {displayText}
-          </Text>
-        </Animated.View>
-      </TouchableOpacity>
+          {card.front}
+        </Text>
+        <Text
+          key={`b-${index}`}
+          style={[styles.measureText, { fontSize: backSize, width: textWidth }]}
+          onTextLayout={handleBackLayout}
+        >
+          {card.back}
+        </Text>
 
-      <TouchableOpacity style={styles.nextButton} onPress={next}>
-        <Text style={styles.nextButtonText}>{isLast ? 'Finish' : 'Next →'}</Text>
-      </TouchableOpacity>
-    </View>
+        {/* Close button */}
+        <TouchableOpacity style={styles.closeBtn} onPress={exitQuiz}>
+          <Text style={styles.closeText}>✕</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.progress}>{index + 1} / {deck.cards.length}</Text>
+        <Text style={styles.deckName}>{deck.name}</Text>
+        <Text style={styles.hint}>{flipped ? 'Showing: Back' : 'Tap card to flip'}</Text>
+
+        <TouchableOpacity
+          onPress={flip}
+          activeOpacity={0.9}
+          style={[styles.cardContainer, { width: cardWidth, height: cardHeight }]}
+        >
+          <Animated.View
+            style={[styles.card, cardStyle, { transform: [{ scaleX: scaleAnim }] }]}
+            onLayout={handleCardLayout}
+          >
+            <Text style={[styles.cardText, { fontSize: displayFontSize, color: textColor }]}>
+              {displayText}
+            </Text>
+          </Animated.View>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.nextButton} onPress={next}>
+          <Text style={styles.nextButtonText}>{isLast ? 'Finish' : 'Next →'}</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
   container: {
     flex: 1, backgroundColor: '#f5f5f5',
     alignItems: 'center', justifyContent: 'center', padding: 20,
@@ -139,6 +162,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
     opacity: 0,
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: 12,
+    left: 16,
+    padding: 8,
+  },
+  closeText: {
+    fontSize: 20,
+    color: '#888',
   },
   progress: { fontSize: 14, color: '#888', marginBottom: 4 },
   deckName: { fontSize: 20, fontWeight: '700', marginBottom: 4 },

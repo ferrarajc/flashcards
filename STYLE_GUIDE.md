@@ -79,7 +79,10 @@
 - Uses `useWindowDimensions` (not static `Dimensions`) so it responds to window size
 
 ### Learn mode (quiz)
-- **Fullscreen** — no nav bar, no sidebar, distraction-free
+- **Fullscreen** — no nav bar (`headerShown: false`), no sidebar, distraction-free
+- **Close button**: top-left corner, ✕ glyph, 20px, color `#888`, padding 8px
+- **Exit confirmation**: Alert — "Exit session?" / "Your progress won't be saved." — buttons: Keep going (cancel), Exit (destructive)
+- Wrapped in `SafeAreaView` to respect notch / dynamic island on iPhone
 
 ---
 
