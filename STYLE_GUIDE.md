@@ -56,9 +56,14 @@
 - **Tablet / Desktop**: permanently visible (`drawerType="permanent"`)
 
 ### Header
-- **Logo**: left-aligned in header, links to Home
-- **Global nav**: right side of header (desktop/tablet), hamburger reveals on phone
+- **Shown on**: tablet and desktop only — phone uses default nav bar with "FlashyCards" text title
+- **Height**: 100px
+- **Background**: `#fcfdfc` (matches logo background)
+- **Bottom border**: 1px, `#e0e0e0`
+- **Logo**: left-aligned, 380×88px, tapping navigates to Home
+- **Right side**: reserved for global nav links (future)
 - **User avatar**: far right of header (future)
+- **Logo file**: `assets/Logo.png`
 
 ### Buttons
 - **Never full width** — buttons should be sized to their content or capped with a max-width
