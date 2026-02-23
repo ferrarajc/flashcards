@@ -1,15 +1,19 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, ActionSheetIOS, TextInput, Modal
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import SidebarLayout from '../components/SidebarLayout';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 
 export default function HomeScreen({ navigation }) {
   const [decks, setDecks] = useState([]);
   const [renameVisible, setRenameVisible] = useState(false);
   const [renameDeckId, setRenameDeckId] = useState(null);
   const [renameText, setRenameText] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { isPhone } = useBreakpoint();
 
   const loadDecks = async () => {
     try {
@@ -21,6 +25,22 @@ export default function HomeScreen({ navigation }) {
   };
 
   useFocusEffect(useCallback(() => { loadDecks(); }, []));
+
+  // Add hamburger button to nav bar on phone
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: isPhone ? () => (
+        <TouchableOpacity
+          onPress={() => setSidebarOpen(true)}
+          style={styles.hamburgerBtn}
+        >
+          <View style={styles.bar} />
+          <View style={styles.bar} />
+          <View style={styles.bar} />
+        </TouchableOpacity>
+      ) : () => null,
+    });
+  }, [isPhone, navigation]);
 
   const saveDecks = async (updated) => {
     setDecks(updated);
@@ -75,63 +95,69 @@ export default function HomeScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>My decks</Text>
+    <SidebarLayout
+      navigation={navigation}
+      sidebarOpen={sidebarOpen}
+      onClose={() => setSidebarOpen(false)}
+    >
+      <View style={styles.container}>
+        <Text style={styles.title}>My decks</Text>
 
-      {decks.length === 0 ? (
-        <Text style={styles.empty}>No decks yet. Create one!</Text>
-      ) : (
-        <FlatList
-          data={decks}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.deckCard}>
-              <TouchableOpacity
-                style={styles.deckInfo}
-                onPress={() => navigation.navigate('Quiz', { deck: item })}
-              >
-                <Text style={styles.deckName}>{item.name}</Text>
-                <Text style={styles.deckCount}>{item.cards.length} cards</Text>
-              </TouchableOpacity>
-              <View style={styles.divider} />
-              <TouchableOpacity style={styles.menuBtn} onPress={() => showMenu(item)}>
-                <Text style={styles.menuDots}>•••</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        />
-      )}
+        {decks.length === 0 ? (
+          <Text style={styles.empty}>No decks yet. Create one!</Text>
+        ) : (
+          <FlatList
+            data={decks}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.deckCard}>
+                <TouchableOpacity
+                  style={styles.deckInfo}
+                  onPress={() => navigation.navigate('Quiz', { deck: item })}
+                >
+                  <Text style={styles.deckName}>{item.name}</Text>
+                  <Text style={styles.deckCount}>{item.cards.length} cards</Text>
+                </TouchableOpacity>
+                <View style={styles.divider} />
+                <TouchableOpacity style={styles.menuBtn} onPress={() => showMenu(item)}>
+                  <Text style={styles.menuDots}>•••</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+        )}
 
-      {/* Rename modal */}
-      <Modal visible={renameVisible} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Rename deck</Text>
-            <TextInput
-              style={styles.modalInput}
-              value={renameText}
-              onChangeText={setRenameText}
-              autoFocus
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity onPress={() => setRenameVisible(false)} style={styles.modalCancel}>
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={confirmRename} style={styles.modalSave}>
-                <Text style={styles.modalSaveText}>Save</Text>
-              </TouchableOpacity>
+        {/* Rename modal */}
+        <Modal visible={renameVisible} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalBox}>
+              <Text style={styles.modalTitle}>Rename deck</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={renameText}
+                onChangeText={setRenameText}
+                autoFocus
+              />
+              <View style={styles.modalButtons}>
+                <TouchableOpacity onPress={() => setRenameVisible(false)} style={styles.modalCancel}>
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={confirmRename} style={styles.modalSave}>
+                  <Text style={styles.modalSaveText}>Save</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      <TouchableOpacity
-        style={styles.createButton}
-        onPress={() => navigation.navigate('CreateDeck')}
-      >
-        <Text style={styles.createButtonText}>+ New deck</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => navigation.navigate('CreateDeck')}
+        >
+          <Text style={styles.createButtonText}>+ New deck</Text>
+        </TouchableOpacity>
+      </View>
+    </SidebarLayout>
   );
 }
 
@@ -172,4 +198,6 @@ const styles = StyleSheet.create({
   modalCancelText: { fontSize: 16, color: '#888' },
   modalSave: { padding: 8 },
   modalSaveText: { fontSize: 16, color: '#4a90e2', fontWeight: '600' },
+  hamburgerBtn: { paddingLeft: 16, gap: 5 },
+  bar: { width: 22, height: 2, backgroundColor: '#333', borderRadius: 2 },
 });
