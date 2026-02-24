@@ -111,15 +111,25 @@
 ## Components
 
 ### Deck list item
-- Left side (tappable): navigates into quiz
+- Left side (tappable): navigates into quiz; tapping also clears the New badge
 - Right side: ellipsis (•••) menu button separated by a vertical divider
 - Ellipsis font size: 14px
+- Deck name: 1 line max, truncates with ellipsis (`numberOfLines={1}`)
+- Meta row (below name): card count + New badge (if applicable)
+
+### New badge
+- Shown on decks that have never been opened for a Learn session
+- Clears on first Learn session (via action sheet or card tap)
+- Auto-expires after 7 days from `createdAt` timestamp
+- Style: blue (`#4a90e2`) pill, white text, 11px bold, `paddingHorizontal: 8`, `borderRadius: 10`
+- Position: meta row, alongside card count
 
 ### Action sheet (ellipsis menu)
 - Title: deck name
 - Options in order: Learn, Rename, Edit, Delete
 - Delete is destructive (red)
 - Triggered via native iOS Action Sheet
+- Learn option clears New badge before navigating
 
 ### Delete confirmation
 - Title: `Delete "Deck Name"` using actual deck name
@@ -128,8 +138,11 @@
 
 ### Quiz card flip
 - Animation: scaleX from 1 → 0 → 1 (horizontal squish)
-- Front card: white background, dark text
-- Back card: primary blue background, dark text
+- Front card: white background, dark (`#222`) text
+- Back card: primary blue background
+  - Question shown at top: 13px, `rgba(255,255,255,0.7)`, max 2 lines
+  - Separator: 40% width, 1px, `rgba(255,255,255,0.3)`, 10px vertical margin
+  - Answer below: white, dynamic font size
 
 ---
 
