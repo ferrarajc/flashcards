@@ -63,7 +63,7 @@ export default function CreateDeckScreen({ navigation }) {
     try {
       const stored = await AsyncStorage.getItem('decks');
       const decks = stored ? JSON.parse(stored) : [];
-      const newDeck = { id: Date.now().toString(), name: deckName.trim(), cards: validCards };
+      const newDeck = { id: Date.now().toString(), name: deckName.trim(), cards: validCards, isNew: true, createdAt: Date.now() };
       await AsyncStorage.setItem('decks', JSON.stringify([...decks, newDeck]));
       navigation.goBack();
     } catch (e) {
