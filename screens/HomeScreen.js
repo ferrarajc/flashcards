@@ -8,6 +8,8 @@ import SidebarLayout from '../components/SidebarLayout';
 import ScreenContainer from '../components/ScreenContainer';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
+const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+
 export default function HomeScreen({ navigation }) {
   const [decks, setDecks] = useState([]);
   const [renameVisible, setRenameVisible] = useState(false);
@@ -19,7 +21,19 @@ export default function HomeScreen({ navigation }) {
   const loadDecks = async () => {
     try {
       const stored = await AsyncStorage.getItem('decks');
-      if (stored) setDecks(JSON.parse(stored));
+      if (!stored) return;
+      const parsed = JSON.parse(stored);
+      const now = Date.now();
+
+      // Auto-expire New badge after 7 days
+      const updated = parsed.map(d =>
+        d.isNew && d.createdAt && now - d.createdAt > SEVEN_DAYS
+          ? { ...d, isNew: false }
+          : d
+      );
+      const anyExpired = updated.some((d, i) => d.isNew !== parsed[i].isNew);
+      if (anyExpired) await AsyncStorage.setItem('decks', JSON.stringify(updated));
+      setDecks(updated);
     } catch (e) {
       console.error(e);
     }
@@ -30,10 +44,7 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     navigation.setOptions({
       headerLeft: isPhone ? () => (
-        <TouchableOpacity
-          onPress={() => setSidebarOpen(true)}
-          style={styles.hamburgerBtn}
-        >
+        <TouchableOpacity onPress={() => setSidebarOpen(true)} style={styles.hamburgerBtn}>
           <View style={styles.bar} />
           <View style={styles.bar} />
           <View style={styles.bar} />
@@ -45,6 +56,12 @@ export default function HomeScreen({ navigation }) {
   const saveDecks = async (updated) => {
     setDecks(updated);
     await AsyncStorage.setItem('decks', JSON.stringify(updated));
+  };
+
+  const clearNewBadge = (deck) => {
+    if (!deck.isNew) return;
+    const updated = decks.map(d => d.id === deck.id ? { ...d, isNew: false } : d);
+    saveDecks(updated);
   };
 
   const deleteDeck = (deck) => {
@@ -86,7 +103,7 @@ export default function HomeScreen({ navigation }) {
         destructiveButtonIndex: 4,
       },
       (index) => {
-        if (index === 1) navigation.navigate('Quiz', { deck });
+        if (index === 1) { clearNewBadge(deck); navigation.navigate('Quiz', { deck }); }
         if (index === 2) startRename(deck);
         if (index === 3) navigation.navigate('EditDeck', { deck });
         if (index === 4) deleteDeck(deck);
@@ -113,9 +130,16 @@ export default function HomeScreen({ navigation }) {
               <View style={styles.deckCard}>
                 <TouchableOpacity
                   style={styles.deckInfo}
-                  onPress={() => navigation.navigate('Quiz', { deck: item })}
+                  onPress={() => { clearNewBadge(item); navigation.navigate('Quiz', { deck: item }); }}
                 >
-                  <Text style={styles.deckName}>{item.name}</Text>
+                  <View style={styles.deckNameRow}>
+                    <Text style={styles.deckName}>{item.name}</Text>
+                    {item.isNew && (
+                      <View style={styles.newBadge}>
+                        <Text style={styles.newBadgeText}>New</Text>
+                      </View>
+                    )}
+                  </View>
                   <Text style={styles.deckCount}>{item.cards.length} cards</Text>
                 </TouchableOpacity>
                 <View style={styles.divider} />
@@ -170,7 +194,13 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
   },
   deckInfo: { flex: 1, padding: 16 },
+  deckNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   deckName: { fontSize: 18, fontWeight: '600' },
+  newBadge: {
+    backgroundColor: '#4a90e2', borderRadius: 10,
+    paddingHorizontal: 8, paddingVertical: 2,
+  },
+  newBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
   deckCount: { fontSize: 13, color: '#888', marginTop: 4 },
   divider: { width: 1, height: '60%', backgroundColor: '#e0e0e0' },
   menuBtn: { paddingHorizontal: 10, paddingVertical: 16 },
@@ -185,9 +215,7 @@ const styles = StyleSheet.create({
     flex: 1, backgroundColor: 'rgba(0,0,0,0.4)',
     alignItems: 'center', justifyContent: 'center',
   },
-  modalBox: {
-    backgroundColor: '#fff', borderRadius: 12, padding: 24, width: '80%',
-  },
+  modalBox: { backgroundColor: '#fff', borderRadius: 12, padding: 24, width: '80%' },
   modalTitle: { fontSize: 18, fontWeight: '600', marginBottom: 12 },
   modalInput: {
     borderWidth: 1, borderColor: '#ddd', borderRadius: 8,
