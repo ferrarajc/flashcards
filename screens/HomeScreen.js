@@ -132,15 +132,15 @@ export default function HomeScreen({ navigation }) {
                   style={styles.deckInfo}
                   onPress={() => { clearNewBadge(item); navigation.navigate('Quiz', { deck: item }); }}
                 >
-                  <View style={styles.deckNameRow}>
-                    <Text style={styles.deckName}>{item.name}</Text>
+                  <Text style={styles.deckName} numberOfLines={1}>{item.name}</Text>
+                  <View style={styles.deckMeta}>
+                    <Text style={styles.deckCount}>{item.cards.length} cards</Text>
                     {item.isNew && (
                       <View style={styles.newBadge}>
                         <Text style={styles.newBadgeText}>New</Text>
                       </View>
                     )}
                   </View>
-                  <Text style={styles.deckCount}>{item.cards.length} cards</Text>
                 </TouchableOpacity>
                 <View style={styles.divider} />
                 <TouchableOpacity style={styles.menuBtn} onPress={() => showMenu(item)}>
@@ -194,14 +194,14 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
   },
   deckInfo: { flex: 1, padding: 16 },
-  deckNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   deckName: { fontSize: 18, fontWeight: '600' },
+  deckMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  deckCount: { fontSize: 13, color: '#888' },
   newBadge: {
     backgroundColor: '#4a90e2', borderRadius: 10,
     paddingHorizontal: 8, paddingVertical: 2,
   },
   newBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
-  deckCount: { fontSize: 13, color: '#888', marginTop: 4 },
   divider: { width: 1, height: '60%', backgroundColor: '#e0e0e0' },
   menuBtn: { paddingHorizontal: 10, paddingVertical: 16 },
   menuDots: { fontSize: 14, color: '#555', letterSpacing: 2 },
