@@ -8,6 +8,8 @@ const CARD_PADDING = 24;
 const MAX_CARD_WIDTH = 640;
 const MAX_FONT = 28;
 const MIN_FONT = 8;
+// Space reserved at top of back face for the question + separator
+const BACK_QUESTION_AREA = 52;
 
 export default function QuizScreen({ route, navigation }) {
   const { deck } = route.params;
@@ -46,7 +48,9 @@ export default function QuizScreen({ route, navigation }) {
 
   const handleBackLayout = useCallback((e) => {
     const h = e.nativeEvent.lines.reduce((sum, l) => sum + l.height, 0);
-    if (h > availableHeight.current && backSizeRef.current > MIN_FONT) {
+    // Back face has less room — the question text occupies the top
+    const backAvailable = availableHeight.current - BACK_QUESTION_AREA;
+    if (h > backAvailable && backSizeRef.current > MIN_FONT) {
       backSizeRef.current -= 1;
       setBackSize(backSizeRef.current);
     }
@@ -92,9 +96,6 @@ export default function QuizScreen({ route, navigation }) {
 
   const isBack = flipped;
   const cardStyle = isBack ? styles.cardBack : styles.cardFront;
-  const displayText = isBack ? card.back : card.front;
-  const displayFontSize = isBack ? backSize : frontSize;
-  const textColor = isBack ? '#fff' : '#222';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -122,7 +123,7 @@ export default function QuizScreen({ route, navigation }) {
 
         <Text style={styles.progress}>{index + 1} / {deck.cards.length}</Text>
         <Text style={styles.deckName}>{deck.name}</Text>
-        <Text style={styles.hint}>{flipped ? 'Showing: Back' : 'Tap card to flip'}</Text>
+        <Text style={styles.hint}>{isBack ? 'Showing: Answer' : 'Tap card to flip'}</Text>
 
         <TouchableOpacity
           onPress={flip}
@@ -133,9 +134,19 @@ export default function QuizScreen({ route, navigation }) {
             style={[styles.card, cardStyle, { transform: [{ scaleX: scaleAnim }] }]}
             onLayout={handleCardLayout}
           >
-            <Text style={[styles.cardText, { fontSize: displayFontSize, color: textColor }]}>
-              {displayText}
-            </Text>
+            {isBack ? (
+              <View style={styles.backContent}>
+                <Text style={styles.backQuestion} numberOfLines={2}>{card.front}</Text>
+                <View style={styles.backSeparator} />
+                <Text style={[styles.cardText, { fontSize: backSize, color: '#fff' }]}>
+                  {card.back}
+                </Text>
+              </View>
+            ) : (
+              <Text style={[styles.cardText, { fontSize: frontSize, color: '#222' }]}>
+                {card.front}
+              </Text>
+            )}
           </Animated.View>
         </TouchableOpacity>
 
@@ -185,6 +196,23 @@ const styles = StyleSheet.create({
   },
   cardFront: { backgroundColor: '#fff' },
   cardBack: { backgroundColor: '#4a90e2' },
+  backContent: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  backQuestion: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
+    textAlign: 'center',
+    fontWeight: '500',
+    width: '100%',
+  },
+  backSeparator: {
+    width: '40%',
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    marginVertical: 10,
+  },
   cardText: {
     textAlign: 'center',
     fontWeight: '500',
