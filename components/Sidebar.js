@@ -15,7 +15,7 @@ export default function Sidebar({ navigation, onClose }) {
 
       <View style={styles.divider} />
 
-      <TouchableOpacity style={styles.item} onPress={() => navigate('CreateDeck')}>
+      <TouchableOpacity style={styles.item} onPress={() => navigate('ManualCreate')}>
         <Text style={styles.newDeckText}>+ New deck</Text>
       </TouchableOpacity>
     </View>
