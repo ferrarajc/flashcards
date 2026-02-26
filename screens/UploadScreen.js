@@ -24,7 +24,8 @@ export default function UploadScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Upload a spreadsheet</Text>
-      <Text style={styles.sub}>CSV format: column 1 = front, column 2 = back</Text>
+      <Text style={styles.sub}>Supports .csv, .xls, .tsv, etc.</Text>
+      <Text style={[styles.sub, { marginBottom: 24 }]}>First column = Front of card{'\n'}Second column = Back of card</Text>
 
       <TouchableOpacity style={styles.button} onPress={pickFile}>
         <Text style={styles.buttonText}>Choose file</Text>
@@ -52,7 +53,8 @@ const styles = StyleSheet.create({
   sub: {
     fontSize: 15,
     color: '#888',
-    marginBottom: 24,
+    textAlign: 'center',
+    marginBottom: 12,
   },
   button: {
     backgroundColor: '#4a90e2',
