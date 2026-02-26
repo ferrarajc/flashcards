@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, StyleSheet, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import Papa from 'papaparse';
+
+async function readFileAsString(uri) {
+  if (Platform.OS === 'web') {
+    const response = await fetch(uri);
+    return response.text();
+  }
+  return FileSystem.readAsStringAsync(uri, { encoding: 'utf8' });
+}
 
 const SPREADSHEET_TYPES = [
   'text/csv',
@@ -30,7 +38,7 @@ export default function UploadScreen({ navigation }) {
       if (result.canceled) { setLoading(false); return; }
 
       const asset = result.assets[0];
-      const content = await FileSystem.readAsStringAsync(asset.uri, { encoding: 'utf8' });
+      const content = await readFileAsString(asset.uri);
       const parsed = Papa.parse(content, { skipEmptyLines: true });
       const cards = parsed.data
         .map(row => ({ front: (row[0] || '').slice(0, 1000), back: (row[1] || '').slice(0, 1000) }))
