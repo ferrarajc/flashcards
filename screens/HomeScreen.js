@@ -176,7 +176,7 @@ export default function HomeScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.createButton}
-          onPress={() => navigation.navigate('CreateDeck')}
+          onPress={() => navigation.navigate('ManualCreate')}
         >
           <Text style={styles.createButtonText}>+ New deck</Text>
         </TouchableOpacity>

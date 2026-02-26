@@ -5,6 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import HomeScreen from './screens/HomeScreen';
 import CreateDeckScreen from './screens/CreateDeckScreen';
+import ManualCreateScreen from './screens/ManualCreateScreen';
 import UploadScreen from './screens/UploadScreen';
 import QuizScreen from './screens/QuizScreen';
 import EndScreen from './screens/EndScreen';
@@ -33,6 +34,11 @@ export default function App() {
           name="CreateDeck"
           component={CreateDeckScreen}
           options={{ title: 'New Deck' }}
+        />
+        <Stack.Screen
+          name="ManualCreate"
+          component={ManualCreateScreen}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Upload"

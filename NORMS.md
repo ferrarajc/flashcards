@@ -25,7 +25,31 @@
 - Issue descriptions should include: problem, proposed solution, files affected
 - Close issues with a comment explaining how they were resolved
 
+### Ticket scope
+- **One behavior per ticket.** A ticket should change one thing the user can observe — not a screen, not a feature area, one behavior.
+- If a ticket requires changing more than 2–3 files or touches more than one UI component, it is probably too large. Split it.
+- New screens ship as a minimal skeleton first (layout + navigation wired up, no polish). Follow-up tickets add each distinct behavior.
+- Visual polish (spacing, sizing, color) is a separate ticket from logic (saving, navigation, validation).
+- If a PR review requires more than two rounds of "also change X", the ticket was too broad. Retroactively split future work more aggressively.
+
 ## Testing
+
+### Automated tests (Jest)
+- **Claude runs `npm run test:log` before opening every PR.** This writes verbose results to `test-results.log`, which Claude then reads to verify all tests pass. If any test fails, Claude fixes it before opening the PR.
+- Write tests for any new pure logic: utility functions, hooks, data transformations
+- Write tests for edge cases that are easy to miss on device (empty states, boundary values, error paths)
+- Test files live in `__tests__/`, named `<Subject>.test.js`
+- Tests cover logic, not layout — visual/layout issues still require device testing
+- `test-results.log` and `coverage/` are gitignored — never commit them
+
+### Test scripts
+| Command | Use |
+|---|---|
+| `npm test` | Quick pass/fail check |
+| `npm run test:log` | Verbose output written to `test-results.log` (Claude uses this) |
+| `npm run test:coverage` | Coverage report — run occasionally to find gaps |
+
+### Device testing
 - Always test on device before approving a PR
 - Test before merging, not after
 

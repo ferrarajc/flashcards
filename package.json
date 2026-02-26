@@ -6,7 +6,16 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "jest --watchAll=false",
+    "test:coverage": "jest --watchAll=false --coverage",
+    "test:log": "jest --watchAll=false --verbose 2>&1 | tee test-results.log"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "moduleNameMapper": {
+      "@react-native-async-storage/async-storage": "@react-native-async-storage/async-storage/jest/async-storage-mock"
+    }
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
