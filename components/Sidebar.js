@@ -19,8 +19,8 @@ export default function Sidebar({ navigation, onClose }) {
         <Text style={styles.newDeckText}>+ New deck</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.item} onPress={() => navigate('Import')}>
-        <Text style={styles.importText}>Import deck</Text>
+      <TouchableOpacity style={styles.item} onPress={() => navigate('Upload')}>
+        <Text style={styles.importText}>Upload deck</Text>
       </TouchableOpacity>
     </View>
   );

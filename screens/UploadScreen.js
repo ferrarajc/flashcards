@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function ImportScreen() {
+export default function UploadScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Import a spreadsheet</Text>
+      <Text style={styles.heading}>Upload a spreadsheet</Text>
       <Text style={styles.sub}>File picker coming soon.</Text>
     </View>
   );
