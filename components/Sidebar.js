@@ -18,6 +18,10 @@ export default function Sidebar({ navigation, onClose }) {
       <TouchableOpacity style={styles.item} onPress={() => navigate('CreateDeck')}>
         <Text style={styles.newDeckText}>+ New deck</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.item} onPress={() => navigate('Import')}>
+        <Text style={styles.importText}>Import deck</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -44,6 +48,11 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   newDeckText: {
+    fontSize: 16,
+    color: '#4a90e2',
+    fontWeight: '600',
+  },
+  importText: {
     fontSize: 16,
     color: '#4a90e2',
     fontWeight: '600',
