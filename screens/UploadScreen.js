@@ -11,6 +11,7 @@ const SPREADSHEET_TYPES = [
 
 export default function UploadScreen() {
   const [fileName, setFileName] = useState(null);
+  const [flipped, setFlipped] = useState(false);
 
   const pickFile = async () => {
     const result = await DocumentPicker.getDocumentAsync({
@@ -25,7 +26,31 @@ export default function UploadScreen() {
     <View style={styles.container}>
       <Text style={styles.heading}>Upload a spreadsheet</Text>
       <Text style={styles.sub}>Supports .csv, .xls, .tsv, etc.</Text>
-      <Text style={[styles.sub, { marginBottom: 24 }]}>First column = Front of card{'\n'}Second column = Back of card</Text>
+
+      <View style={styles.toggle}>
+        <TouchableOpacity
+          style={[styles.toggleOption, !flipped && styles.toggleOptionActive]}
+          onPress={() => setFlipped(false)}
+        >
+          <Text style={[styles.toggleText, !flipped && styles.toggleTextActive]}>
+            Front, Back
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.toggleOption, flipped && styles.toggleOptionActive]}
+          onPress={() => setFlipped(true)}
+        >
+          <Text style={[styles.toggleText, flipped && styles.toggleTextActive]}>
+            Back, Front
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <Text style={[styles.sub, { marginBottom: 24 }]}>
+        {flipped
+          ? 'First column = Back of card\nSecond column = Front of card'
+          : 'First column = Front of card\nSecond column = Back of card'}
+      </Text>
 
       <TouchableOpacity style={styles.button} onPress={pickFile}>
         <Text style={styles.buttonText}>Choose file</Text>
@@ -55,6 +80,29 @@ const styles = StyleSheet.create({
     color: '#888',
     textAlign: 'center',
     marginBottom: 12,
+  },
+  toggle: {
+    flexDirection: 'row',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#4a90e2',
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  toggleOption: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  toggleOptionActive: {
+    backgroundColor: '#4a90e2',
+  },
+  toggleText: {
+    fontSize: 14,
+    color: '#4a90e2',
+    fontWeight: '600',
+  },
+  toggleTextActive: {
+    color: '#fff',
   },
   button: {
     backgroundColor: '#4a90e2',
