@@ -24,7 +24,7 @@ export default function UploadScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Upload a spreadsheet</Text>
-      <Text style={styles.sub}>CSV format: column 1 = front, column 2 = back</Text>
+      <Text style={styles.sub}>Supports .csv, .xls, and tab-delimited files.{'\n'}First column = front, second column = back.</Text>
 
       <TouchableOpacity style={styles.button} onPress={pickFile}>
         <Text style={styles.buttonText}>Choose file</Text>
