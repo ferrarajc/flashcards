@@ -151,3 +151,51 @@
 - Nav bar titles: Title case
 - Back navigation: default iOS behavior
 - End screen: no nav bar (headerShown: false)
+
+---
+
+## UX Principles
+
+### Never provide a one-tap escape from unsaved work
+Creation and editing flows must not expose a prominent, easily-tappable action (e.g. an ✕ button) that silently discards all unsaved content. Such an action is too easy to trigger accidentally and destroys user work without recourse.
+
+**Rule:** In any screen where the user is creating or editing content, the only top-level exit must be the intentional save action (e.g. "Done"). If a back/close affordance is provided alongside unsaved content, it must require explicit confirmation (e.g. an Alert with a destructive "Discard" option) before discarding. When in doubt, auto-save or keep the draft.
+
+---
+
+## Manual Deck Creation Screen
+
+### Layout
+- No nav bar (`headerShown: false`) — screen manages its own header
+- Header: left spacer (mirrors Done width) | centered editable deck name | Done button
+- Card fills all remaining vertical space below header (`flex: 1`)
+- No action bar, no tab switcher, no dot indicators
+
+### Swipe model
+Pages cycle: Card 1 front → Card 1 back → Card 2 front → Card 2 back → … → Add card page
+- Total pages = `cards.length * 2 + 1`
+- Swiping right advances through front/back pairs, ending at the Add card page
+- Add card page: plain background, centered dashed-border "+ Add card" button
+
+### Navigation arrows
+- Circular white buttons (40×40, `borderRadius: 20`), shadow, `rgba(255,255,255,0.92)` background
+- Floating on top of card, vertically centered in card area via absolute positioning
+- Left arrow at `left: 8`, right arrow at `right: 8` within the card area
+- Card horizontal padding is 56px to keep card content clear of arrows
+- Left arrow disabled (opacity 0.25) on first page; right arrow disabled on last page
+
+### Card surface
+- Front: white (`#FFFFFF`) background, dark (`#222`) text
+- Back: primary blue (`#4a90e2`) background, white text
+- Back face shows front question text (13px, `rgba(255,255,255,0.65)`) + separator above answer input
+- TextInput fills card (`flex: 1`), multiline, scrollable for long content, top-aligned
+- Placeholders: "Type a question" (front) / "Type an answer" (back)
+
+### Card chrome
+- Top-right: `•••` ellipsis tapping opens action sheet — "Delete card" (destructive) + "Cancel"
+- Bottom-left: `x/y` counter (12px, semibold, low-opacity) showing current card / total cards
+- If only one card and Delete is chosen: clears the card's text rather than removing it
+
+### Saving
+- Done validates at least one non-empty card; saves `frontColor: '#FFFFFF'`, `backColor: '#4a90e2'`, `isNew: true`, `createdAt`
+- Navigates to Home on success; no chicken/confirmation message

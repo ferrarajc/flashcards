@@ -1,81 +1,147 @@
 import React, { useState, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ScrollView, KeyboardAvoidingView, Platform, SafeAreaView, Alert
+  ScrollView, KeyboardAvoidingView, Platform, SafeAreaView,
+  Alert, ActionSheetIOS, useWindowDimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const FRONT_COLORS = ['#FFFFFF', '#FFFDE7', '#E8F5E9', '#E3F2FD', '#FCE4EC', '#F3E5F5', '#FFF3E0', '#E0F7FA'];
-const BACK_COLORS = ['#4a90e2', '#1565C0', '#2E7D32', '#E65100', '#6A1B9A', '#C62828', '#37474F', '#00695C'];
+const MAX_FONT = 22;
+const MIN_FONT = 10;
+// Vertical space consumed by the back-face question preview + separator
+const BACK_PREVIEW_H = 52;
+// Chrome heights inside the card (top bar + counter)
+const TOP_BAR_H = 36;
+const COUNTER_H = 22;
+// Card-page vertical padding (16 top + 16 bottom)
+const PAGE_PAD_V = 32;
+// Card vertical padding (paddingTop 4 + paddingBottom 12)
+const CARD_PAD_V = 16;
 
 export default function ManualCreateScreen({ navigation }) {
+  const { width: screenWidth } = useWindowDimensions();
+
+  // Card area height = 135% of the landscape ratio established last iteration
+  const cardAreaMaxHeight = Math.round(((screenWidth - 32) * 0.65 + 32) * 1.35);
+
+  // Available height for the editable text content inside the card.
+  // Card height = cardAreaMaxHeight - PAGE_PAD_V
+  // Content area = card height - CARD_PAD_V - TOP_BAR_H - COUNTER_H
+  const CONTENT_H = Math.max(60, cardAreaMaxHeight - PAGE_PAD_V - CARD_PAD_V - TOP_BAR_H - COUNTER_H);
+  const CONTENT_H_BACK = Math.max(40, CONTENT_H - BACK_PREVIEW_H);
+
+  const cardIdCounter = useRef(1);
+  const newCard = () => ({ id: `c${cardIdCounter.current++}`, front: '', back: '' });
+
   const [deckName, setDeckName] = useState('Untitled deck');
-  const [cards, setCards] = useState([{ front: '', back: '' }]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [activeSide, setActiveSide] = useState('front');
-  const [frontColor, setFrontColor] = useState('#FFFFFF');
-  const [backColor, setBackColor] = useState('#4a90e2');
-  const [showColors, setShowColors] = useState(false);
+  const [cards, setCards] = useState([{ id: 'c0', front: '', back: '' }]);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [cardWidth, setCardWidth] = useState(0);
+  // Per card-face font size, keyed by `${card.id}-${side}`
+  const [fontSizes, setFontSizes] = useState({});
+  const fontSizeRefs = useRef({});
   const scrollRef = useRef(null);
 
-  const updateCard = (index, side, value) => {
+  const getKey = (cardId, side) => `${cardId}-${side}`;
+  const getFontSize = (cardId, side) => fontSizes[getKey(cardId, side)] ?? MAX_FONT;
+
+  const setFontSize = (cardId, side, size) => {
+    const key = getKey(cardId, side);
+    fontSizeRefs.current[key] = size;
+    setFontSizes(prev => ({ ...prev, [key]: size }));
+  };
+
+  // Called by each TextInput's onContentSizeChange.
+  // contentH = natural height of all text at current font size.
+  // availH   = vertical space the text must fit within.
+  // Steps font down when overflowing, back up when there's lots of room.
+  const handleContentSizeChange = (cardId, side, hasFrontText, e) => {
+    const { height: contentH } = e.nativeEvent.contentSize;
+    const availH = (side === 'back' && hasFrontText) ? CONTENT_H_BACK : CONTENT_H;
+    const currentSize = fontSizeRefs.current[getKey(cardId, side)] ?? MAX_FONT;
+
+    if (contentH > availH * 0.95 && currentSize > MIN_FONT) {
+      setFontSize(cardId, side, currentSize - 1);
+    } else if (contentH < availH * 0.50 && currentSize < MAX_FONT) {
+      setFontSize(cardId, side, currentSize + 1);
+    }
+  };
+
+  // Pages: c0-front, c0-back, c1-front, c1-back, …, ghost
+  const totalPages = cards.length * 2 + 1;
+  const lastRealPageIndex = cards.length * 2 - 1;
+  const isOnLastRealPage = currentPageIndex === lastRealPageIndex;
+  const isAtStart = currentPageIndex === 0;
+
+  const updateCard = (cardIndex, side, value) => {
     const updated = [...cards];
-    updated[index] = { ...updated[index], [side]: value };
+    updated[cardIndex] = { ...updated[cardIndex], [side]: value };
     setCards(updated);
+    if (!value) setFontSize(cards[cardIndex].id, side, MAX_FONT);
   };
 
   const addCard = () => {
-    const newCards = [...cards, { front: '', back: '' }];
+    const card = newCard();
+    const newCards = [...cards, card];
     setCards(newCards);
-    const newIndex = newCards.length - 1;
-    setCurrentIndex(newIndex);
-    setActiveSide('front');
+    const newPageIndex = (newCards.length - 1) * 2;
+    setCurrentPageIndex(newPageIndex);
     setTimeout(() => {
-      scrollRef.current?.scrollTo({ x: newIndex * cardWidth, animated: true });
+      scrollRef.current?.scrollTo({ x: newPageIndex * cardWidth, animated: true });
     }, 50);
   };
 
-  const removeCurrentCard = () => {
+  const deleteCard = (cardIndex) => {
+    const card = cards[cardIndex];
     if (cards.length === 1) {
-      updateCard(0, 'front', '');
-      updateCard(0, 'back', '');
+      setFontSize(card.id, 'front', MAX_FONT);
+      setFontSize(card.id, 'back', MAX_FONT);
+      setCards([{ ...card, front: '', back: '' }]);
+      setCurrentPageIndex(0);
+      scrollRef.current?.scrollTo({ x: 0, animated: false });
       return;
     }
-    Alert.alert('Remove this card?', '', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove', style: 'destructive', onPress: () => {
-          const updated = cards.filter((_, i) => i !== currentIndex);
-          const newIndex = Math.min(currentIndex, updated.length - 1);
-          setCards(updated);
-          setCurrentIndex(newIndex);
-          setTimeout(() => {
-            scrollRef.current?.scrollTo({ x: newIndex * cardWidth, animated: false });
-          }, 50);
-        }
-      }
-    ]);
+    const updated = cards.filter((_, i) => i !== cardIndex);
+    const targetCardIndex = Math.min(cardIndex, updated.length - 1);
+    const targetPageIndex = targetCardIndex * 2;
+    setCards(updated);
+    setCurrentPageIndex(targetPageIndex);
+    setTimeout(() => {
+      scrollRef.current?.scrollTo({ x: targetPageIndex * cardWidth, animated: false });
+    }, 50);
   };
 
-  const goTo = (index) => {
-    if (index < 0 || index >= cards.length) return;
-    setCurrentIndex(index);
-    setActiveSide('front');
-    scrollRef.current?.scrollTo({ x: index * cardWidth, animated: true });
+  const showCardMenu = (cardIndex) => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: ['Cancel', 'Delete card'], destructiveButtonIndex: 1, cancelButtonIndex: 0 },
+        (i) => { if (i === 1) deleteCard(cardIndex); }
+      );
+    } else {
+      Alert.alert('', '', [
+        { text: 'Delete card', style: 'destructive', onPress: () => deleteCard(cardIndex) },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    }
+  };
+
+  const goTo = (pageIndex) => {
+    if (pageIndex < 0 || pageIndex >= totalPages) return;
+    setCurrentPageIndex(pageIndex);
+    scrollRef.current?.scrollTo({ x: pageIndex * cardWidth, animated: true });
   };
 
   const handleScrollEnd = (e) => {
     if (cardWidth === 0) return;
-    const index = Math.round(e.nativeEvent.contentOffset.x / cardWidth);
-    if (index !== currentIndex && index >= 0 && index < cards.length) {
-      setCurrentIndex(index);
-      setActiveSide('front');
-    }
+    const pageIndex = Math.round(e.nativeEvent.contentOffset.x / cardWidth);
+    if (pageIndex >= cards.length * 2) { addCard(); return; }
+    if (pageIndex >= 0) setCurrentPageIndex(pageIndex);
   };
 
   const saveDeck = async () => {
-    const validCards = cards.filter(c => c.front.trim() || c.back.trim());
+    const validCards = cards
+      .filter(c => c.front.trim() || c.back.trim())
+      .map(({ id, ...rest }) => rest);
     if (validCards.length === 0) {
       Alert.alert('No cards', 'Add at least one card before saving.');
       return;
@@ -87,22 +153,17 @@ export default function ManualCreateScreen({ navigation }) {
         id: Date.now().toString(),
         name: deckName.trim() || 'Untitled deck',
         cards: validCards,
-        frontColor,
-        backColor,
+        frontColor: '#FFFFFF',
+        backColor: '#4a90e2',
         isNew: true,
         createdAt: Date.now(),
       };
       await AsyncStorage.setItem('decks', JSON.stringify([...decks, newDeck]));
       navigation.navigate('Home');
-    } catch (e) {
+    } catch {
       Alert.alert('Error', 'Could not save deck.');
     }
   };
-
-  const cardBg = activeSide === 'front' ? frontColor : backColor;
-  const isBackDark = activeSide === 'back';
-  const textColor = isBackDark ? '#fff' : '#222';
-  const placeholderColor = isBackDark ? 'rgba(255,255,255,0.45)' : '#ccc';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -111,11 +172,9 @@ export default function ManualCreateScreen({ navigation }) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
-        {/* Header */}
+        {/* ── Header ── */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
-            <Text style={styles.headerBtnText}>✕</Text>
-          </TouchableOpacity>
+          <View style={styles.headerSpacer} />
           <TextInput
             style={styles.deckNameInput}
             value={deckName}
@@ -125,32 +184,13 @@ export default function ManualCreateScreen({ navigation }) {
             maxLength={80}
           />
           <TouchableOpacity onPress={saveDeck} style={styles.headerBtn}>
-            <Text style={[styles.headerBtnText, styles.doneText]}>Done</Text>
+            <Text style={styles.doneText}>Done</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Card counter */}
-        <Text style={styles.counter}>Card {currentIndex + 1} of {cards.length}</Text>
-
-        {/* Front / Back tabs */}
-        <View style={styles.tabs}>
-          <TouchableOpacity
-            style={[styles.tab, activeSide === 'front' && styles.tabActive]}
-            onPress={() => setActiveSide('front')}
-          >
-            <Text style={[styles.tabText, activeSide === 'front' && styles.tabTextActive]}>Front</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeSide === 'back' && styles.tabActive]}
-            onPress={() => setActiveSide('back')}
-          >
-            <Text style={[styles.tabText, activeSide === 'back' && styles.tabTextActive]}>Back</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Card swipe area */}
+        {/* ── Card area ── */}
         <View
-          style={styles.cardArea}
+          style={[styles.cardArea, { maxHeight: cardAreaMaxHeight }]}
           onLayout={e => setCardWidth(e.nativeEvent.layout.width)}
         >
           {cardWidth > 0 && (
@@ -162,103 +202,108 @@ export default function ManualCreateScreen({ navigation }) {
               onMomentumScrollEnd={handleScrollEnd}
               scrollEventThrottle={16}
               decelerationRate="fast"
+              style={styles.scrollView}
             >
-              {cards.map((card, i) => (
-                <View key={i} style={[styles.cardPage, { width: cardWidth }]}>
-                  <View style={[styles.card, { backgroundColor: cardBg }]}>
-                    {activeSide === 'back' && card.front.trim() ? (
-                      <>
-                        <Text style={styles.cardBackQuestion} numberOfLines={2}>
-                          {card.front}
+              {Array.from({ length: totalPages }).map((_, pageIndex) => {
+                // Ghost page — silent swipe target for add-card gesture
+                if (pageIndex === totalPages - 1) {
+                  return <View key="ghost" style={{ width: cardWidth }} />;
+                }
+
+                const cardIndex = Math.floor(pageIndex / 2);
+                const side = pageIndex % 2 === 0 ? 'front' : 'back';
+                const card = cards[cardIndex];
+                const isBack = side === 'back';
+                const hasFrontText = isBack && !!card.front.trim();
+                const cardBg = isBack ? '#4a90e2' : '#FFFFFF';
+                const textColor = isBack ? '#fff' : '#222';
+                const chromeColor = isBack ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.2)';
+                const placeholderColor = isBack ? 'rgba(255,255,255,0.35)' : '#bbb';
+                const fontSize = getFontSize(card.id, side);
+
+                return (
+                  <View key={pageIndex} style={[styles.cardPage, { width: cardWidth }]}>
+                    <View style={[styles.card, { backgroundColor: cardBg }]}>
+
+                      {/* Top bar: Front/Back label (left) + ••• menu (right) */}
+                      <View style={styles.cardTopBar}>
+                        <Text style={[styles.cardChrome, { color: chromeColor }]}>
+                          {isBack ? 'Back' : 'Front'}
                         </Text>
-                        <View style={styles.cardBackSeparator} />
-                      </>
-                    ) : null}
-                    <TextInput
-                      style={[styles.cardInput, { color: textColor }]}
-                      value={activeSide === 'front' ? card.front : card.back}
-                      onChangeText={v => updateCard(i, activeSide, v)}
-                      placeholder={activeSide === 'front' ? 'Type the question…' : 'Type the answer…'}
-                      placeholderTextColor={placeholderColor}
-                      multiline
-                      maxLength={1000}
-                      scrollEnabled={false}
-                    />
+                        <View style={{ flex: 1 }} />
+                        <TouchableOpacity
+                          style={styles.cardMenuBtn}
+                          onPress={() => showCardMenu(cardIndex)}
+                          hitSlop={{ top: 8, right: 8, bottom: 8, left: 16 }}
+                        >
+                          <Text style={[styles.cardMenuIcon, { color: chromeColor }]}>
+                            •••
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      {/* Content area — centers children vertically */}
+                      <View style={styles.cardContentArea}>
+                        {hasFrontText ? (
+                          <View style={styles.backPreview}>
+                            <Text style={styles.cardBackQuestion} numberOfLines={2}>
+                              {card.front}
+                            </Text>
+                            <View style={styles.cardBackSeparator} />
+                          </View>
+                        ) : null}
+
+                        {/* TextInput — auto-sizes to content; onContentSizeChange drives font scaling */}
+                        <TextInput
+                          style={[styles.cardInput, { color: textColor, fontSize }]}
+                          value={side === 'front' ? card.front : card.back}
+                          onChangeText={v => updateCard(cardIndex, side, v)}
+                          onContentSizeChange={e =>
+                            handleContentSizeChange(card.id, side, hasFrontText, e)
+                          }
+                          placeholder={side === 'front' ? 'Type a question' : 'Type an answer'}
+                          placeholderTextColor={placeholderColor}
+                          multiline
+                          scrollEnabled={false}
+                          maxLength={1000}
+                        />
+                      </View>
+
+                      {/* Bottom chrome: x/y counter */}
+                      <Text style={[styles.cardChrome, { color: chromeColor }]}>
+                        {cardIndex + 1}/{cards.length}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </ScrollView>
           )}
-        </View>
 
-        {/* Dot indicators + prev / next */}
-        <View style={styles.navRow}>
-          <TouchableOpacity
-            onPress={() => goTo(currentIndex - 1)}
-            style={styles.navArrow}
-            disabled={currentIndex === 0}
-          >
-            <Text style={[styles.navArrowText, currentIndex === 0 && styles.navDisabled]}>‹</Text>
-          </TouchableOpacity>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dots}>
-            {cards.map((_, i) => (
-              <TouchableOpacity key={i} onPress={() => goTo(i)}>
-                <View style={[styles.dot, i === currentIndex && styles.dotActive]} />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          <TouchableOpacity
-            onPress={() => goTo(currentIndex + 1)}
-            style={styles.navArrow}
-            disabled={currentIndex === cards.length - 1}
-          >
-            <Text style={[styles.navArrowText, currentIndex === cards.length - 1 && styles.navDisabled]}>›</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Action row */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.actionBtn} onPress={addCard}>
-            <Text style={styles.actionBtnText}>+ Add card</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionBtn, showColors && styles.actionBtnActive]}
-            onPress={() => setShowColors(s => !s)}
-          >
-            <Text style={[styles.actionBtnText, showColors && styles.actionBtnActiveText]}>🎨 Colors</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} onPress={removeCurrentCard}>
-            <Text style={[styles.actionBtnText, styles.removeText]}>Remove</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Color picker */}
-        {showColors && (
-          <View style={styles.colorPicker}>
-            <Text style={styles.colorLabel}>Front color</Text>
-            <View style={styles.colorRow}>
-              {FRONT_COLORS.map(c => (
-                <TouchableOpacity
-                  key={c}
-                  style={[styles.swatch, { backgroundColor: c }, frontColor === c && styles.swatchSelected]}
-                  onPress={() => setFrontColor(c)}
-                />
-              ))}
-            </View>
-            <Text style={styles.colorLabel}>Back color</Text>
-            <View style={styles.colorRow}>
-              {BACK_COLORS.map(c => (
-                <TouchableOpacity
-                  key={c}
-                  style={[styles.swatch, { backgroundColor: c }, backColor === c && styles.swatchSelected]}
-                  onPress={() => setBackColor(c)}
-                />
-              ))}
-            </View>
+          {/* Floating left arrow */}
+          <View style={[styles.arrowOverlay, styles.arrowLeft]} pointerEvents="box-none">
+            <TouchableOpacity
+              style={[styles.arrowCircle, isAtStart && styles.arrowCircleDisabled]}
+              onPress={() => goTo(currentPageIndex - 1)}
+              disabled={isAtStart}
+            >
+              <Text style={[styles.arrowText, isAtStart && styles.arrowTextDisabled]}>‹</Text>
+            </TouchableOpacity>
           </View>
-        )}
+
+          {/* Floating right arrow — blue + on back of last card */}
+          <View style={[styles.arrowOverlay, styles.arrowRight]} pointerEvents="box-none">
+            {isOnLastRealPage ? (
+              <TouchableOpacity style={styles.arrowCircleAdd} onPress={addCard}>
+                <Text style={styles.arrowTextAdd}>+</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.arrowCircle} onPress={() => goTo(currentPageIndex + 1)}>
+                <Text style={styles.arrowText}>›</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -277,9 +322,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
-  headerBtn: { padding: 6, minWidth: 52, alignItems: 'center' },
-  headerBtnText: { fontSize: 18, color: '#888' },
-  doneText: { color: '#4a90e2', fontWeight: '700', fontSize: 16 },
+  headerSpacer: { minWidth: 52, paddingHorizontal: 6 },
+  headerBtn: { padding: 6, minWidth: 52, alignItems: 'flex-end' },
   deckNameInput: {
     flex: 1,
     fontSize: 17,
@@ -288,125 +332,121 @@ const styles = StyleSheet.create({
     color: '#222',
     paddingVertical: 4,
   },
-
-  // Counter
-  counter: {
-    textAlign: 'center',
-    fontSize: 13,
-    color: '#888',
-    marginTop: 14,
-    marginBottom: 10,
-  },
-
-  // Tabs
-  tabs: {
-    flexDirection: 'row',
-    alignSelf: 'center',
-    backgroundColor: '#e8e8e8',
-    borderRadius: 10,
-    padding: 3,
-    marginBottom: 16,
-  },
-  tab: {
-    paddingHorizontal: 28,
-    paddingVertical: 7,
-    borderRadius: 8,
-  },
-  tabActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
-  tabText: { fontSize: 14, fontWeight: '600', color: '#888' },
-  tabTextActive: { color: '#222' },
+  doneText: { color: '#4a90e2', fontWeight: '700', fontSize: 16 },
 
   // Card area
-  cardArea: { flex: 1 },
+  cardArea: { flex: 1, position: 'relative' },
+  scrollView: { flex: 1 },
+
   cardPage: {
-    paddingHorizontal: 24,
-    justifyContent: 'center',
+    height: '100%',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
+
   card: {
+    flex: 1,
     borderRadius: 16,
-    padding: 24,
-    minHeight: 200,
-    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 12,
     shadowColor: '#000',
     shadowOpacity: 0.12,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
   },
+
+  // Top bar: Front/Back label on left, ••• on right
+  cardTopBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+    height: TOP_BAR_H,
+  },
+
+  // Shared chrome style (Front/Back label, x/y counter, ••• icon)
+  cardChrome: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
+
+  cardMenuBtn: { padding: 8 },
+  cardMenuIcon: {
+    fontSize: 15,
+    letterSpacing: 1,
+  },
+
+  // Content area — centers TextInput (and optional back preview) vertically
+  cardContentArea: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+
+  // Back face: question preview above answer input
+  backPreview: { alignItems: 'center', marginBottom: 8 },
   cardBackQuestion: {
     fontSize: 13,
     color: 'rgba(255,255,255,0.65)',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   cardBackSeparator: {
+    width: '40%',
     height: 1,
     backgroundColor: 'rgba(255,255,255,0.25)',
-    marginBottom: 12,
-    marginHorizontal: 20,
   },
+
+  // Text input — auto-sizes to content (no fixed height, no flex)
+  // justifyContent: 'center' on the parent handles vertical centering
   cardInput: {
-    fontSize: 20,
-    fontWeight: '500',
+    width: '100%',
     textAlign: 'center',
-    minHeight: 80,
+    fontWeight: '500',
     backgroundColor: 'transparent',
   },
 
-  // Navigation
-  navRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
-  navArrow: { padding: 8 },
-  navArrowText: { fontSize: 32, color: '#4a90e2', lineHeight: 36 },
-  navDisabled: { color: '#ccc' },
-  dots: { flexGrow: 1, justifyContent: 'center', flexDirection: 'row', gap: 8, paddingHorizontal: 8 },
-  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#ccc' },
-  dotActive: { backgroundColor: '#4a90e2', width: 18 },
-
-  // Action row
-  actionRow: {
-    flexDirection: 'row',
+  // Floating nav arrows
+  arrowOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
     justifyContent: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingBottom: 12,
+    pointerEvents: 'box-none',
   },
-  actionBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  actionBtnActive: { backgroundColor: '#4a90e2', borderColor: '#4a90e2' },
-  actionBtnText: { fontSize: 14, fontWeight: '600', color: '#444' },
-  actionBtnActiveText: { color: '#fff' },
-  removeText: { color: '#cc3333' },
+  arrowLeft: { left: 8 },
+  arrowRight: { right: 8 },
 
-  // Color picker
-  colorPicker: {
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+  arrowCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
-  colorLabel: { fontSize: 12, fontWeight: '700', color: '#888', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
-  colorRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  swatch: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: 'transparent',
+  arrowCircleDisabled: { opacity: 0.25 },
+  arrowText: { fontSize: 26, color: '#4a90e2', lineHeight: 30 },
+  arrowTextDisabled: { color: '#aaa' },
+
+  arrowCircleAdd: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#4a90e2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
-  swatchSelected: {
-    borderColor: '#4a90e2',
-    transform: [{ scale: 1.15 }],
-  },
+  arrowTextAdd: { fontSize: 24, color: '#fff', fontWeight: '700', lineHeight: 28 },
 });
