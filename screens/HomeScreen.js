@@ -103,7 +103,7 @@ export default function HomeScreen({ navigation }) {
         destructiveButtonIndex: 4,
       },
       (index) => {
-        if (index === 1) { clearNewBadge(deck); navigation.navigate('Quiz', { deck }); }
+        if (index === 1) { clearNewBadge(deck); navigation.navigate('ModeSelect', { deck }); }
         if (index === 2) startRename(deck);
         if (index === 3) navigation.navigate('EditDeck', { deck });
         if (index === 4) deleteDeck(deck);
