@@ -1,14 +1,11 @@
 import { renderHook } from '@testing-library/react-native';
 import { useBreakpoint, BREAKPOINTS } from '../hooks/useBreakpoint';
 
-// Mock useWindowDimensions so we can control the reported width in each test
-jest.mock('react-native', () => {
-  const rn = jest.requireActual('react-native');
-  rn.useWindowDimensions = jest.fn();
-  return rn;
-});
+// Control useWindowDimensions via spyOn so we don't load native modules
+const mockDimensions = (width, height = 900) =>
+  jest.spyOn(require('react-native'), 'useWindowDimensions').mockReturnValue({ width, height });
 
-import { useWindowDimensions } from 'react-native';
+afterEach(() => jest.restoreAllMocks());
 
 describe('BREAKPOINTS constants', () => {
   it('phone breakpoint is 600', () => {
@@ -22,9 +19,7 @@ describe('BREAKPOINTS constants', () => {
 
 describe('useBreakpoint', () => {
   describe('phone (width < 600)', () => {
-    beforeEach(() => {
-      useWindowDimensions.mockReturnValue({ width: 390, height: 844 });
-    });
+    beforeEach(() => mockDimensions(390, 844));
 
     it('sets isPhone true', () => {
       const { result } = renderHook(() => useBreakpoint());
@@ -48,9 +43,7 @@ describe('useBreakpoint', () => {
   });
 
   describe('tablet (600 ≤ width < 1024)', () => {
-    beforeEach(() => {
-      useWindowDimensions.mockReturnValue({ width: 800, height: 1024 });
-    });
+    beforeEach(() => mockDimensions(800, 1024));
 
     it('sets isTablet true', () => {
       const { result } = renderHook(() => useBreakpoint());
@@ -69,9 +62,7 @@ describe('useBreakpoint', () => {
   });
 
   describe('desktop (width ≥ 1024)', () => {
-    beforeEach(() => {
-      useWindowDimensions.mockReturnValue({ width: 1280, height: 800 });
-    });
+    beforeEach(() => mockDimensions(1280, 800));
 
     it('sets isDesktop true', () => {
       const { result } = renderHook(() => useBreakpoint());
@@ -91,21 +82,21 @@ describe('useBreakpoint', () => {
 
   describe('boundary values', () => {
     it('width exactly 600 is tablet, not phone', () => {
-      useWindowDimensions.mockReturnValue({ width: 600, height: 900 });
+      mockDimensions(600);
       const { result } = renderHook(() => useBreakpoint());
       expect(result.current.isPhone).toBe(false);
       expect(result.current.isTablet).toBe(true);
     });
 
     it('width exactly 1024 is desktop, not tablet', () => {
-      useWindowDimensions.mockReturnValue({ width: 1024, height: 768 });
+      mockDimensions(1024);
       const { result } = renderHook(() => useBreakpoint());
       expect(result.current.isTablet).toBe(false);
       expect(result.current.isDesktop).toBe(true);
     });
 
     it('width 599 is phone', () => {
-      useWindowDimensions.mockReturnValue({ width: 599, height: 900 });
+      mockDimensions(599);
       const { result } = renderHook(() => useBreakpoint());
       expect(result.current.isPhone).toBe(true);
     });
