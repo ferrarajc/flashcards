@@ -8,6 +8,7 @@ import CreateDeckScreen from './screens/CreateDeckScreen';
 import NewDeckScreen from './screens/NewDeckScreen';
 import ManualCreateScreen from './screens/ManualCreateScreen';
 import UploadScreen from './screens/UploadScreen';
+import ModeSelectScreen from './screens/ModeSelectScreen';
 import QuizScreen from './screens/QuizScreen';
 import EndScreen from './screens/EndScreen';
 import EditDeckScreen from './screens/EditDeckScreen';
@@ -50,6 +51,11 @@ export default function App() {
           name="Upload"
           component={UploadScreen}
           options={{ title: 'Upload' }}
+        />
+        <Stack.Screen
+          name="ModeSelect"
+          component={ModeSelectScreen}
+          options={{ title: 'Study' }}
         />
         <Stack.Screen
           name="Quiz"
