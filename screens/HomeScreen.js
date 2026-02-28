@@ -130,7 +130,7 @@ export default function HomeScreen({ navigation }) {
               <View style={styles.deckCard}>
                 <TouchableOpacity
                   style={styles.deckInfo}
-                  onPress={() => { clearNewBadge(item); navigation.navigate('Quiz', { deck: item }); }}
+                  onPress={() => { clearNewBadge(item); navigation.navigate('ModeSelect', { deck: item }); }}
                 >
                   <Text style={styles.deckName} numberOfLines={1}>{item.name}</Text>
                   <View style={styles.deckMeta}>
