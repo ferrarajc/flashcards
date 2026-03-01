@@ -4,9 +4,12 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import SidebarLayout from '../components/SidebarLayout';
 import ScreenContainer from '../components/ScreenContainer';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+
+const TROPHY_COLORS = { bronze: '#cd7f32', silver: '#a8a9ad', gold: '#ffd700' };
 
 const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 
@@ -140,6 +143,16 @@ export default function HomeScreen({ navigation }) {
                         <Text style={styles.newBadgeText}>New</Text>
                       </View>
                     )}
+                    {/* Earned trophies — filled icons only, no outlines for unearned */}
+                    {['bronze', 'silver', 'gold'].some(t => item.trophies?.[t]) && (
+                      <View style={styles.trophyMini}>
+                        {['bronze', 'silver', 'gold'].map(tier =>
+                          item.trophies?.[tier] ? (
+                            <Ionicons key={tier} name="trophy" size={14} color={TROPHY_COLORS[tier]} />
+                          ) : null
+                        )}
+                      </View>
+                    )}
                   </View>
                 </TouchableOpacity>
                 <View style={styles.divider} />
@@ -202,6 +215,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 2,
   },
   newBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  trophyMini: { flexDirection: 'row', gap: 3, alignItems: 'center' },
   divider: { width: 1, height: '60%', backgroundColor: '#e0e0e0' },
   menuBtn: { paddingHorizontal: 10, paddingVertical: 16 },
   menuDots: { fontSize: 14, color: '#555', letterSpacing: 2 },
