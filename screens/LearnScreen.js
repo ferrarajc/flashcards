@@ -1,12 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
-  ScrollView, useWindowDimensions,
+  Animated, useWindowDimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 
 const MAX_FONT = 24;
 const MIN_FONT = 10;
+const MAX_WIDTH = 480;
+
+const TROPHY_COLORS = { bronze: '#cd7f32', silver: '#a8a9ad', gold: '#ffd700' };
 
 // Fisher-Yates shuffle
 function shuffle(arr) {
@@ -22,34 +26,69 @@ function shuffle(arr) {
 function buildOrder(cards, lastId) {
   const shuffled = shuffle(cards);
   if (shuffled.length > 1 && shuffled[0].index === lastId) {
-    // Swap first with second to avoid repeat
     [shuffled[0], shuffled[1]] = [shuffled[1], shuffled[0]];
   }
   return shuffled;
 }
 
+// Animated counter that bounces on increment
+function AnimatedCounter({ value, style }) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const prevValue = useRef(value);
+
+  useEffect(() => {
+    if (value !== prevValue.current) {
+      prevValue.current = value;
+      Animated.sequence([
+        Animated.spring(scaleAnim, { toValue: 1.5, useNativeDriver: true, speed: 50, bounciness: 4 }),
+        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, friction: 5 }),
+      ]).start();
+    }
+  }, [value]);
+
+  return (
+    <Animated.Text style={[style, { transform: [{ scale: scaleAnim }] }]}>
+      {value}
+    </Animated.Text>
+  );
+}
+
 export default function LearnScreen({ route, navigation }) {
   const { deck } = route.params;
   const { width } = useWindowDimensions();
-
-  const cardWidth = Math.min(width - 40, 640);
+  const contentWidth = Math.min(width - 40, MAX_WIDTH);
 
   // Tag each card with its original index for repeat-prevention
   const allCards = deck.cards.map((c, i) => ({ ...c, index: i }));
 
   // Circulation: cards still in play
   const [circulation, setCirculation] = useState(() => buildOrder(allCards, -1));
-  const [queuePos, setQueuePos] = useState(0); // position in current shuffled order
+  const [queuePos, setQueuePos] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [didGet, setDidGet] = useState(0);
-  const [didntGet, setDidntGet] = useState(0);
-  const [totalGotten, setTotalGotten] = useState(0);
-  const [hasMissed, setHasMissed] = useState(false); // tracks if any "I didn't get it" this session
+  // wrongSet: indices of cards answered wrong at least once (still in circulation)
+  const [wrongSet, setWrongSet] = useState(() => new Set());
+  const [gotItCount, setGotItCount] = useState(0); // cards permanently cleared
+  const [hasMissed, setHasMissed] = useState(false);
   const lastIdRef = useRef(-1);
+  // Per-card miss counts for this session (cardIndex string → clickCount)
+  const sessionMissCountsRef = useRef({});
+
+  // Trophies already earned on this deck — loaded fresh from storage on mount
+  const [deckTrophies, setDeckTrophies] = useState({});
+  useEffect(() => {
+    AsyncStorage.getItem('decks').then(stored => {
+      if (!stored) return;
+      const decks = JSON.parse(stored);
+      const d = decks.find(d => d.id === deck.id);
+      if (d?.trophies) setDeckTrophies(d.trophies);
+    });
+  }, []);
 
   const total = allCards.length;
-  const learnedPct = Math.round((totalGotten / total) * 100);
-
+  // Derived display values — always reflect current card states, never exceed total
+  const didGet = gotItCount;
+  const didntGet = wrongSet.size;
+  const learnedPct = Math.round((gotItCount / total) * 100);
   const currentCard = circulation[queuePos] ?? null;
 
   // Font sizing
@@ -67,7 +106,7 @@ export default function LearnScreen({ route, navigation }) {
 
   const handleFrontLayout = (e) => {
     const h = e.nativeEvent.lines.reduce((sum, l) => sum + l.height, 0);
-    if (h > 120 && frontSizeRef.current > MIN_FONT) {
+    if (h > 160 && frontSizeRef.current > MIN_FONT) {
       frontSizeRef.current -= 1;
       setFrontSize(frontSizeRef.current);
     }
@@ -75,22 +114,50 @@ export default function LearnScreen({ route, navigation }) {
 
   const handleBackLayout = (e) => {
     const h = e.nativeEvent.lines.reduce((sum, l) => sum + l.height, 0);
-    if (h > 80 && backSizeRef.current > MIN_FONT) {
+    if (h > 120 && backSizeRef.current > MIN_FONT) {
       backSizeRef.current -= 1;
       setBackSize(backSizeRef.current);
     }
   };
 
+  // Card flip: scaleX 1→0 (shrink), swap content at 0, then 0→1 (grow back)
+  const flipAnim = useRef(new Animated.Value(1)).current;
+  const isFlippingRef = useRef(false);
+
+  const flipToAnswer = () => {
+    if (isFlippingRef.current || showAnswer) return;
+    isFlippingRef.current = true;
+    Animated.timing(flipAnim, {
+      toValue: 0,
+      duration: 160,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowAnswer(true);
+      Animated.timing(flipAnim, {
+        toValue: 1,
+        duration: 160,
+        useNativeDriver: true,
+      }).start(() => {
+        isFlippingRef.current = false;
+      });
+    });
+  };
+
+  const resetCard = () => {
+    flipAnim.setValue(1);
+    isFlippingRef.current = false;
+    setShowAnswer(false);
+  };
+
   const advance = (newCirculation, removedIndex) => {
     resetFontSizes();
-    setShowAnswer(false);
+    resetCard();
 
     const remaining = newCirculation;
-    if (remaining.length === 0) return; // handled by caller
+    if (remaining.length === 0) return;
 
     const nextPos = queuePos + 1;
     if (nextPos >= remaining.length) {
-      // End of current queue — rebuild with remaining cards
       const lastId = removedIndex ?? (currentCard?.index ?? -1);
       lastIdRef.current = lastId;
       setCirculation(buildOrder(remaining, lastId));
@@ -101,20 +168,22 @@ export default function LearnScreen({ route, navigation }) {
   };
 
   const handleGotIt = async () => {
+    const wasWrong = wrongSet.has(currentCard.index);
     const newCirculation = circulation.filter((_, i) => i !== queuePos);
-    const newTotalGotten = totalGotten + 1;
-    setDidGet(d => d + 1);
-    setTotalGotten(newTotalGotten);
+    const newGotItCount = gotItCount + 1;
+
+    // If this card was previously wrong, remove it from wrongSet (red decrement)
+    const newWrongSet = new Set(wrongSet);
+    if (wasWrong) newWrongSet.delete(currentCard.index);
+
+    setGotItCount(newGotItCount);
+    setWrongSet(newWrongSet);
 
     if (newCirculation.length === 0) {
-      // All cards gotten — go to completion
-      await saveTrophies(newTotalGotten, !hasMissed, deck);
-      navigation.replace('LearnComplete', {
-        deck,
-        didGet: didGet + 1,
-        didntGet,
-        hasMissed,
-      });
+      const { newTrophy, cardStats } = await saveSessionData(
+        newGotItCount, !hasMissed, deck, sessionMissCountsRef.current
+      );
+      navigation.replace('LearnComplete', { deck, newTrophy, cardStats });
       return;
     }
 
@@ -123,8 +192,19 @@ export default function LearnScreen({ route, navigation }) {
   };
 
   const handleDidntGetIt = () => {
-    setDidntGet(d => d + 1);
-    setHasMissed(true);
+    const wasWrong = wrongSet.has(currentCard.index);
+    // Always count every press for study guide (even repeat misses on same card)
+    const key = String(currentCard.index);
+    sessionMissCountsRef.current[key] = (sessionMissCountsRef.current[key] || 0) + 1;
+
+    if (!wasWrong) {
+      // First time wrong: increment red, mark card
+      const newWrongSet = new Set(wrongSet);
+      newWrongSet.add(currentCard.index);
+      setWrongSet(newWrongSet);
+      setHasMissed(true);
+    }
+    // Already wrong before: no counter changes, card stays in circulation
     advance(circulation, null);
   };
 
@@ -132,50 +212,60 @@ export default function LearnScreen({ route, navigation }) {
     advance(circulation, null);
   };
 
-  const handlePrev = () => {
-    if (queuePos === 0) return;
-    resetFontSizes();
-    setShowAnswer(false);
-    setQueuePos(p => p - 1);
-  };
-
   if (!currentCard) return null;
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Stats header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.deckName} numberOfLines={1}>{deck.name}</Text>
+      {/* Header */}
+      <View style={styles.headerOuter}>
+        <View style={[styles.headerInner, { width: contentWidth }]}>
+          {/* Deck name in a bordered box */}
+          <View style={styles.deckBox}>
+            <Text style={styles.deckName} numberOfLines={1}>{deck.name}</Text>
+          </View>
           <Text style={styles.cardCount}>{total} cards</Text>
-        </View>
 
-        <View style={styles.statsRow}>
-          <View style={styles.statLeft}>
-            <Text style={styles.statLabelRed}>I didn't get</Text>
-            <Text style={styles.statNumRed}>{didntGet}</Text>
+          {/* Stats: labels on one baseline, numbers centered under each label */}
+          <View style={styles.statsSection}>
+            <View style={styles.labelsRow}>
+              <Text style={[styles.statLabel, styles.statLabelRed]}>I didn't get</Text>
+              <Text style={[styles.statLabel, styles.statLabelCenter]}>learned</Text>
+              <Text style={[styles.statLabel, styles.statLabelGreen]}>I did get</Text>
+            </View>
+            <View style={styles.numbersRow}>
+              <View style={styles.numberCell}>
+                <AnimatedCounter value={didntGet} style={styles.statNumRed} />
+              </View>
+              <View style={styles.numberCell}>
+                <Text style={[styles.learnedPct, learnedPct === 100 && styles.learnedPctComplete]}>
+                  {learnedPct}<Text style={styles.pctSign}>%</Text>
+                </Text>
+              </View>
+              <View style={styles.numberCell}>
+                <AnimatedCounter value={didGet} style={styles.statNumGreen} />
+              </View>
+            </View>
           </View>
 
-          <View style={styles.statCenter}>
-            <Text style={styles.statLabelCenter}>learned</Text>
-            <Text style={[styles.learnedPct, learnedPct === 100 && styles.learnedPctComplete]}>
-              {learnedPct}<Text style={styles.pctSign}>%</Text>
-            </Text>
+          {/* Trophy row — filled+colored when earned, grey outline when not */}
+          <View style={styles.trophyRow}>
+            {['bronze', 'silver', 'gold'].map(tier => (
+              <Ionicons
+                key={tier}
+                name={deckTrophies[tier] ? 'trophy' : 'trophy-outline'}
+                size={22}
+                color={deckTrophies[tier] ? TROPHY_COLORS[tier] : '#ccc'}
+              />
+            ))}
           </View>
 
-          <View style={styles.statRight}>
-            <Text style={styles.statLabelGreen}>I did get</Text>
-            <Text style={styles.statNumGreen}>{didGet}</Text>
-          </View>
-        </View>
-
-        <View style={styles.trophyRow}>
-          <Text style={styles.trophyPlaceholder}>🏆 No trophies yet</Text>
+          {/* Remaining cards in circulation */}
+          <Text style={styles.remainingText}>{circulation.length} in rotation</Text>
         </View>
       </View>
 
-      {/* Card area */}
-      <View style={styles.cardArea}>
+      {/* Body */}
+      <View style={styles.body}>
         {/* Hidden measurement texts */}
         <Text
           key={`f-${currentCard.index}`}
@@ -192,86 +282,112 @@ export default function LearnScreen({ route, navigation }) {
           {currentCard.back}
         </Text>
 
-        {/* Left chevron */}
+        {/* Prompt above card */}
+        <View style={[styles.promptRow, { width: contentWidth }]}>
+          <Text style={styles.promptText}>
+            {showAnswer
+              ? 'Did you get it?'
+              : 'Think. If you know the answer, say it out loud.'}
+          </Text>
+        </View>
+
+        {/* Card (single, content swaps at midpoint of flip) */}
         <TouchableOpacity
-          style={[styles.chevron, styles.chevronLeft, queuePos === 0 && styles.chevronDisabled]}
-          onPress={handlePrev}
-          disabled={queuePos === 0}
+          activeOpacity={showAnswer ? 1 : 0.85}
+          onPress={showAnswer ? undefined : flipToAnswer}
+          style={{ width: contentWidth }}
         >
-          <Text style={styles.chevronText}>‹</Text>
+          <Animated.View
+            style={[
+              styles.card,
+              { width: contentWidth },
+              showAnswer && styles.cardAnswer,
+              { transform: [{ scaleX: flipAnim }] },
+            ]}
+          >
+            <View style={styles.cardContent}>
+              {showAnswer ? (
+                <>
+                  <Text style={styles.questionPreview} numberOfLines={2}>
+                    {currentCard.front}
+                  </Text>
+                  <View style={styles.cardSeparator} />
+                  <Text style={[styles.answerText, { fontSize: backSize }]}>
+                    {currentCard.back}
+                  </Text>
+                </>
+              ) : (
+                <Text style={[styles.questionText, { fontSize: frontSize }]}>
+                  {currentCard.front}
+                </Text>
+              )}
+            </View>
+          </Animated.View>
         </TouchableOpacity>
 
-        {/* Card */}
-        <View style={[styles.card, { width: cardWidth }, showAnswer && styles.cardAnswer]}>
+        {/* Action buttons */}
+        <View style={[styles.actionRow, { width: contentWidth }]}>
           {showAnswer ? (
-            <View style={styles.cardContent}>
-              <Text style={[styles.questionPreview, { fontSize: Math.max(12, frontSize - 4) }]} numberOfLines={2}>
-                {currentCard.front}
-              </Text>
-              <View style={styles.separator} />
-              <Text style={[styles.answerText, { fontSize: backSize }]}>
-                {currentCard.back}
-              </Text>
-            </View>
+            <>
+              <TouchableOpacity style={styles.didntGetBtn} onPress={handleDidntGetIt}>
+                <Text style={styles.didntGetText}>I didn't get it</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.gotItBtn} onPress={handleGotIt}>
+                <Text style={styles.gotItText}>I got it</Text>
+              </TouchableOpacity>
+            </>
           ) : (
-            <View style={styles.cardContent}>
-              <Text style={[styles.questionText, { fontSize: frontSize }]}>
-                {currentCard.front}
-              </Text>
-            </View>
+            <>
+              <TouchableOpacity style={styles.skipBtn} onPress={handleSkip}>
+                <Text style={styles.skipText}>Skip</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.flipBtn} onPress={flipToAnswer}>
+                <Text style={styles.flipText}>Flip</Text>
+              </TouchableOpacity>
+            </>
           )}
         </View>
-
-        {/* Right chevron */}
-        <TouchableOpacity style={[styles.chevron, styles.chevronRight]} onPress={handleSkip}>
-          <Text style={styles.chevronText}>›</Text>
-        </TouchableOpacity>
       </View>
-
-      {/* Prompt or action buttons */}
-      {showAnswer ? (
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.didntGetBtn} onPress={handleDidntGetIt}>
-            <Text style={styles.didntGetText}>I didn't get it</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.gotItBtn} onPress={handleGotIt}>
-            <Text style={styles.gotItText}>I got it</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <TouchableOpacity style={styles.promptArea} onPress={() => setShowAnswer(true)}>
-          <Text style={styles.promptText}>
-            Think. If you know the answer, say it out loud.
-          </Text>
-          <Text style={styles.tapToReveal}>Tap to reveal →</Text>
-        </TouchableOpacity>
-      )}
     </SafeAreaView>
   );
 }
 
-async function saveTrophies(totalGotten, perfectSession, deck) {
+async function saveSessionData(totalGotten, perfectSession, deck, sessionMissCounts) {
   try {
     const stored = await AsyncStorage.getItem('decks');
-    if (!stored) return;
+    if (!stored) return { newTrophy: null, cardStats: {} };
     const decks = JSON.parse(stored);
     const idx = decks.findIndex(d => d.id === deck.id);
-    if (idx === -1) return;
+    if (idx === -1) return { newTrophy: null, cardStats: {} };
 
+    // Merge session miss counts into cumulative per-card stats
+    const existingStats = decks[idx].cardStats || {};
+    const updatedStats = { ...existingStats };
+    for (const [key, count] of Object.entries(sessionMissCounts)) {
+      if (count > 0) updatedStats[key] = (updatedStats[key] || 0) + count;
+    }
+
+    // Trophy logic — track which (if any) was newly earned this session
     const existing = decks[idx].trophies || {};
     const updated = { ...existing };
+    let newTrophy = null;
+    if (!updated.bronze) {
+      updated.bronze = true;
+      newTrophy = 'bronze';
+    } else if (perfectSession && !updated.silver) {
+      updated.silver = true;
+      newTrophy = 'silver';
+    } else if (perfectSession && updated.silver && !updated.gold) {
+      updated.gold = true;
+      newTrophy = 'gold';
+    }
 
-    // Bronze: first time reaching 100%
-    if (!updated.bronze) updated.bronze = true;
-
-    // Silver: first perfect session
-    if (perfectSession && !updated.silver) updated.silver = true;
-    // Gold: second perfect session (already had silver)
-    else if (perfectSession && updated.silver && !updated.gold) updated.gold = true;
-
-    decks[idx] = { ...decks[idx], trophies: updated };
+    decks[idx] = { ...decks[idx], trophies: updated, cardStats: updatedStats };
     await AsyncStorage.setItem('decks', JSON.stringify(decks));
-  } catch (_) {}
+    return { newTrophy, cardStats: updatedStats };
+  } catch (_) {
+    return { newTrophy: null, cardStats: {} };
+  }
 }
 
 const styles = StyleSheet.create({
@@ -279,17 +395,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  header: {
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 10,
-  },
-  headerTop: {
+
+  // Header
+  headerOuter: {
+    backgroundColor: '#f5f5f5',
     alignItems: 'center',
-    marginBottom: 8,
+    paddingTop: 16,
+    paddingBottom: 12,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e8e8e8',
+  },
+  headerInner: {
+    alignItems: 'center',
+  },
+  deckBox: {
+    borderWidth: 1.5,
+    borderColor: '#d0d0d0',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    marginBottom: 4,
+    backgroundColor: '#fff',
+    maxWidth: '100%',
   },
   deckName: {
     fontSize: 17,
@@ -299,39 +427,65 @@ const styles = StyleSheet.create({
   cardCount: {
     fontSize: 12,
     color: '#aaa',
-    marginTop: 1,
+    marginBottom: 12,
   },
-  statsRow: {
+
+  // Stats: two rows (labels share baseline; numbers centered under labels)
+  statsSection: {
+    width: '100%',
+    marginBottom: 10,
+  },
+  labelsRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+    width: '100%',
+    alignItems: 'baseline',
+    marginBottom: 2,
   },
-  statLeft: { alignItems: 'flex-start', flex: 1 },
-  statCenter: { alignItems: 'center', flex: 1 },
-  statRight: { alignItems: 'flex-end', flex: 1 },
-  statLabelRed: { fontSize: 11, color: '#e05252', fontWeight: '500' },
+  statLabel: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  numbersRow: {
+    flexDirection: 'row',
+    width: '100%',
+  },
+  numberCell: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statLabelRed: { color: '#e05252' },
   statNumRed: { fontSize: 28, fontWeight: '700', color: '#e05252', lineHeight: 32 },
-  statLabelGreen: { fontSize: 11, color: '#4caf50', fontWeight: '500' },
+  statLabelGreen: { color: '#4caf50' },
   statNumGreen: { fontSize: 28, fontWeight: '700', color: '#4caf50', lineHeight: 32 },
-  statLabelCenter: { fontSize: 11, color: '#888', fontWeight: '500' },
+  statLabelCenter: { color: '#888' },
   learnedPct: { fontSize: 36, fontWeight: '700', color: '#222', lineHeight: 40 },
   learnedPctComplete: { color: '#4caf50' },
   pctSign: { fontSize: 20 },
+
+  // Trophy placeholders
   trophyRow: {
-    alignItems: 'center',
-  },
-  trophyPlaceholder: {
-    fontSize: 12,
-    color: '#ccc',
-  },
-  cardArea: {
-    flex: 1,
     flexDirection: 'row',
+    gap: 10,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
   },
+  remainingText: {
+    fontSize: 11,
+    color: '#bbb',
+    marginTop: 6,
+  },
+
+  // Body
+  body: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 28,
+    paddingTop: 20,
+  },
+
+  // Off-screen measurement text
   measureText: {
     position: 'absolute',
     top: -9999,
@@ -339,33 +493,33 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: 280,
   },
-  chevron: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#fff',
+
+  // Prompt
+  promptRow: {
     alignItems: 'center',
+    marginBottom: 16,
+    minHeight: 38,
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    zIndex: 1,
   },
-  chevronLeft: { marginRight: -20 },
-  chevronRight: { marginLeft: -20 },
-  chevronDisabled: { opacity: 0.3 },
-  chevronText: { fontSize: 22, color: '#555', lineHeight: 26 },
+  promptText: {
+    fontSize: 14,
+    color: '#888',
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+
+  // Card
   card: {
-    minHeight: 180,
+    minHeight: 250,
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 24,
+    padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
-    zIndex: 0,
   },
   cardAnswer: {
     backgroundColor: '#5b6cdb',
@@ -380,47 +534,59 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   questionPreview: {
-    textAlign: 'center',
+    fontSize: 13,
     color: 'rgba(255,255,255,0.65)',
+    textAlign: 'center',
     fontWeight: '500',
-    width: '100%',
+    marginBottom: 6,
   },
-  separator: {
+  cardSeparator: {
     width: '40%',
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    marginVertical: 10,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    marginBottom: 12,
   },
   answerText: {
     textAlign: 'center',
     color: '#fff',
     fontWeight: '500',
   },
-  promptArea: {
-    padding: 24,
-    alignItems: 'center',
-  },
-  promptText: {
-    fontSize: 15,
-    color: '#888',
-    fontStyle: 'italic',
-    textAlign: 'center',
-    marginBottom: 6,
-  },
-  tapToReveal: {
-    fontSize: 13,
-    color: '#aaa',
-  },
+
+  // Action buttons
   actionRow: {
     flexDirection: 'row',
-    padding: 20,
     gap: 12,
+    marginTop: 24,
+  },
+  skipBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 100,
+    backgroundColor: '#e0e0e0',
+    alignItems: 'center',
+  },
+  skipText: {
+    color: '#555',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  flipBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 100,
+    backgroundColor: '#5b6cdb',
+    alignItems: 'center',
+  },
+  flipText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   didntGetBtn: {
     flex: 1,
+    paddingVertical: 14,
+    borderRadius: 100,
     backgroundColor: '#e05252',
-    paddingVertical: 16,
-    borderRadius: 12,
     alignItems: 'center',
   },
   didntGetText: {
@@ -430,9 +596,9 @@ const styles = StyleSheet.create({
   },
   gotItBtn: {
     flex: 1,
+    paddingVertical: 14,
+    borderRadius: 100,
     backgroundColor: '#4caf50',
-    paddingVertical: 16,
-    borderRadius: 12,
     alignItems: 'center',
   },
   gotItText: {
