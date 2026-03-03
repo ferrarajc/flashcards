@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
-  Animated, useWindowDimensions,
+  Animated, useWindowDimensions, Pressable, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,26 @@ const MIN_FONT = 10;
 const MAX_WIDTH = 480;
 
 const TROPHY_COLORS = { bronze: '#cd7f32', silver: '#a8a9ad', gold: '#ffd700' };
+
+const TROPHY_INFO = {
+  bronze: { name: 'Bronze Trophy', desc: 'Awarded for completing the deck the first time' },
+  silver: { name: 'Silver Trophy', desc: 'Awarded for a perfect run — no cards missed' },
+  gold:   { name: 'Gold Trophy',   desc: 'Awarded for two perfect runs' },
+};
+
+// Rotating memory tips — keep in sync with docs/memory-tips.md
+const MEMORY_TIPS = [
+  "If you know the answer, say it out loud",
+  "Give your brain time to try to recall the answer",
+  "Sleep after studying helps memories stick",
+  "Imagine pictures to make ideas more memorable",
+  "Review harder cards more often than easy ones",
+  "Study in different places now and then",
+  "Revisit older cards so they don't fade",
+  "Keep sessions short so you don't burn out",
+];
+const CHAR_INTERVAL_MS = 75;  // 40-char tip ≈ 3 000 ms
+const TIP_PAUSE_MS = 10000;   // dwell after fully typed
 
 // Fisher-Yates shuffle
 function shuffle(arr) {
@@ -83,6 +103,38 @@ export default function LearnScreen({ route, navigation }) {
       if (d?.trophies) setDeckTrophies(d.trophies);
     });
   }, []);
+
+  // Trophy tooltip
+  const [activeTrophy, setActiveTrophy] = useState(null);
+
+  // Typewriter prompt — refs persist across card changes (component doesn't remount)
+  const [promptDisplay, setPromptDisplay] = useState('');
+  const tipIndexRef = useRef(0);
+  const typeTimerRef = useRef(null);
+
+  useEffect(() => {
+    function startNextCycle() {
+      const tip = MEMORY_TIPS[tipIndexRef.current];
+      setPromptDisplay('');
+      typeChar(tip, 0);
+    }
+    function typeChar(tip, ci) {
+      setPromptDisplay(tip.slice(0, ci));
+      if (ci < tip.length) {
+        typeTimerRef.current = setTimeout(() => typeChar(tip, ci + 1), CHAR_INTERVAL_MS);
+      } else {
+        // Fully typed — pause, then advance to next tip
+        typeTimerRef.current = setTimeout(() => {
+          tipIndexRef.current = (tipIndexRef.current + 1) % MEMORY_TIPS.length;
+          startNextCycle();
+        }, TIP_PAUSE_MS);
+      }
+    }
+    startNextCycle();
+    return () => {
+      clearTimeout(typeTimerRef.current);
+    };
+  }, []); // mount only
 
   const total = allCards.length;
   // Derived display values — always reflect current card states, never exceed total
@@ -216,51 +268,51 @@ export default function LearnScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Header */}
+      {/* Header — deck info box only */}
       <View style={styles.headerOuter}>
-        <View style={[styles.headerInner, { width: contentWidth }]}>
-          {/* Deck name in a bordered box */}
-          <View style={styles.deckBox}>
-            <Text style={styles.deckName} numberOfLines={1}>{deck.name}</Text>
-          </View>
-          <Text style={styles.cardCount}>{total} cards</Text>
-
-          {/* Stats: labels on one baseline, numbers centered under each label */}
-          <View style={styles.statsSection}>
-            <View style={styles.labelsRow}>
-              <Text style={[styles.statLabel, styles.statLabelRed]}>I didn't get</Text>
-              <Text style={[styles.statLabel, styles.statLabelCenter]}>learned</Text>
-              <Text style={[styles.statLabel, styles.statLabelGreen]}>I did get</Text>
-            </View>
-            <View style={styles.numbersRow}>
-              <View style={styles.numberCell}>
-                <AnimatedCounter value={didntGet} style={styles.statNumRed} />
-              </View>
-              <View style={styles.numberCell}>
-                <Text style={[styles.learnedPct, learnedPct === 100 && styles.learnedPctComplete]}>
-                  {learnedPct}<Text style={styles.pctSign}>%</Text>
-                </Text>
-              </View>
-              <View style={styles.numberCell}>
-                <AnimatedCounter value={didGet} style={styles.statNumGreen} />
-              </View>
-            </View>
-          </View>
-
-          {/* Trophy row — filled+colored when earned, grey outline when not */}
+        <View style={styles.deckBox}>
+          <Text style={styles.deckName} numberOfLines={1}>{deck.name}</Text>
+          <Text style={styles.deckSubtitle} numberOfLines={1}>
+            {total} cards, {circulation.length} left to learn
+          </Text>
+          {/* Trophy row inside the box */}
           <View style={styles.trophyRow}>
-            {['bronze', 'silver', 'gold'].map(tier => (
-              <Ionicons
-                key={tier}
-                name={deckTrophies[tier] ? 'trophy' : 'trophy-outline'}
-                size={22}
-                color={deckTrophies[tier] ? TROPHY_COLORS[tier] : '#ccc'}
-              />
-            ))}
+            {(['bronze', 'silver', 'gold']).map(tier => {
+              const earned = !!deckTrophies[tier];
+              return (
+                <View key={tier} style={styles.trophyWrapper}>
+                  <Pressable
+                    onPress={() => {
+                      if (!earned) return;
+                      setActiveTrophy(activeTrophy === tier ? null : tier);
+                    }}
+                    onHoverIn={() => {
+                      if (Platform.OS === 'web' && earned) setActiveTrophy(tier);
+                    }}
+                    onHoverOut={() => {
+                      if (Platform.OS === 'web') setActiveTrophy(null);
+                    }}
+                    style={({ pressed }) => [
+                      styles.trophyPressable,
+                      Platform.OS !== 'web' && earned && pressed && { opacity: 0.7 },
+                    ]}
+                  >
+                    <Ionicons
+                      name={earned ? 'trophy' : 'trophy-outline'}
+                      size={20}
+                      color={earned ? TROPHY_COLORS[tier] : '#ccc'}
+                    />
+                  </Pressable>
+                  {activeTrophy === tier && (
+                    <View style={styles.trophyTooltip}>
+                      <Text style={styles.trophyTooltipName}>{TROPHY_INFO[tier].name}</Text>
+                      <Text style={styles.trophyTooltipDesc}>{TROPHY_INFO[tier].desc}</Text>
+                    </View>
+                  )}
+                </View>
+              );
+            })}
           </View>
-
-          {/* Remaining cards in circulation */}
-          <Text style={styles.remainingText}>{circulation.length} in rotation</Text>
         </View>
       </View>
 
@@ -282,16 +334,14 @@ export default function LearnScreen({ route, navigation }) {
           {currentCard.back}
         </Text>
 
-        {/* Prompt above card */}
+        {/* Prompt */}
         <View style={[styles.promptRow, { width: contentWidth }]}>
           <Text style={styles.promptText}>
-            {showAnswer
-              ? 'Did you get it?'
-              : 'Think. If you know the answer, say it out loud.'}
+            {showAnswer ? 'Did you get it?' : promptDisplay}
           </Text>
         </View>
 
-        {/* Card (single, content swaps at midpoint of flip) */}
+        {/* Card */}
         <TouchableOpacity
           activeOpacity={showAnswer ? 1 : 0.85}
           onPress={showAnswer ? undefined : flipToAnswer}
@@ -347,6 +397,31 @@ export default function LearnScreen({ route, navigation }) {
             </>
           )}
         </View>
+
+        {/* Divider */}
+        <View style={[styles.statsDivider, { width: contentWidth }]} />
+
+        {/* Stats — pinned to bottom */}
+        <View style={[styles.statsSection, { width: contentWidth }]}>
+          <View style={styles.labelsRow}>
+            <Text style={[styles.statLabel, styles.statLabelRed]}>I didn't get</Text>
+            <Text style={[styles.statLabel, styles.statLabelCenter]}>learned</Text>
+            <Text style={[styles.statLabel, styles.statLabelGreen]}>I did get</Text>
+          </View>
+          <View style={styles.numbersRow}>
+            <View style={styles.numberCell}>
+              <AnimatedCounter value={didntGet} style={styles.statNumRed} />
+            </View>
+            <View style={styles.numberCell}>
+              <Text style={[styles.learnedPct, learnedPct === 100 && styles.learnedPctComplete]}>
+                {learnedPct}<Text style={styles.pctSign}>%</Text>
+              </Text>
+            </View>
+            <View style={styles.numberCell}>
+              <AnimatedCounter value={didGet} style={styles.statNumGreen} />
+            </View>
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -396,93 +471,83 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
 
-  // Header
+  // Header — just the deck box, centered
   headerOuter: {
-    backgroundColor: '#f5f5f5',
     alignItems: 'center',
     paddingTop: 16,
-    paddingBottom: 12,
+    paddingBottom: 14,
     paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e8e8e8',
-  },
-  headerInner: {
-    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
   },
   deckBox: {
     borderWidth: 1.5,
     borderColor: '#d0d0d0',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    marginBottom: 4,
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     backgroundColor: '#fff',
-    maxWidth: '100%',
+    alignItems: 'center',
+    gap: 4,
   },
   deckName: {
     fontSize: 17,
     fontWeight: '700',
     color: '#222',
   },
-  cardCount: {
+  deckSubtitle: {
     fontSize: 12,
     color: '#aaa',
-    marginBottom: 12,
   },
 
-  // Stats: two rows (labels share baseline; numbers centered under labels)
-  statsSection: {
-    width: '100%',
-    marginBottom: 10,
-  },
-  labelsRow: {
-    flexDirection: 'row',
-    width: '100%',
-    alignItems: 'baseline',
-    marginBottom: 2,
-  },
-  statLabel: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  numbersRow: {
-    flexDirection: 'row',
-    width: '100%',
-  },
-  numberCell: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statLabelRed: { color: '#e05252' },
-  statNumRed: { fontSize: 28, fontWeight: '700', color: '#e05252', lineHeight: 32 },
-  statLabelGreen: { color: '#4caf50' },
-  statNumGreen: { fontSize: 28, fontWeight: '700', color: '#4caf50', lineHeight: 32 },
-  statLabelCenter: { color: '#888' },
-  learnedPct: { fontSize: 36, fontWeight: '700', color: '#222', lineHeight: 40 },
-  learnedPctComplete: { color: '#4caf50' },
-  pctSign: { fontSize: 20 },
-
-  // Trophy placeholders
+  // Trophy row — inside the deck box
   trophyRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  trophyWrapper: {
+    position: 'relative',
     alignItems: 'center',
   },
-  remainingText: {
-    fontSize: 11,
-    color: '#bbb',
-    marginTop: 6,
+  trophyPressable: {
+    padding: 4,
+  },
+  trophyTooltip: {
+    position: 'absolute',
+    bottom: 32,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    elevation: 6,
+    zIndex: 20,
+    minWidth: 200,
+    alignItems: 'center',
+  },
+  trophyTooltipName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#222',
+    marginBottom: 3,
+  },
+  trophyTooltipDesc: {
+    fontSize: 12,
+    color: '#888',
+    textAlign: 'center',
   },
 
-  // Body
+  // Body — prompt → card → buttons → stats
   body: {
     flex: 1,
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 28,
     paddingTop: 20,
+    paddingBottom: 20,
+    justifyContent: 'space-between',
   },
 
   // Off-screen measurement text
@@ -497,7 +562,6 @@ const styles = StyleSheet.create({
   // Prompt
   promptRow: {
     alignItems: 'center',
-    marginBottom: 16,
     minHeight: 38,
     justifyContent: 'center',
   },
@@ -556,7 +620,6 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 24,
   },
   skipBtn: {
     flex: 1,
@@ -606,4 +669,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
+
+  // Divider between buttons and stats
+  statsDivider: {
+    height: 1,
+    backgroundColor: '#e8e8e8',
+  },
+
+  // Stats — bottom of body
+  statsSection: {
+    // sits as last child; body justifyContent: 'space-between' pins it to bottom
+  },
+  labelsRow: {
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'baseline',
+    marginBottom: 2,
+  },
+  statLabel: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  numbersRow: {
+    flexDirection: 'row',
+    width: '100%',
+  },
+  numberCell: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statLabelRed: { color: '#e05252' },
+  statNumRed: { fontSize: 28, fontWeight: '700', color: '#e05252', lineHeight: 32 },
+  statLabelGreen: { color: '#4caf50' },
+  statNumGreen: { fontSize: 28, fontWeight: '700', color: '#4caf50', lineHeight: 32 },
+  statLabelCenter: { color: '#888' },
+  learnedPct: { fontSize: 36, fontWeight: '700', color: '#222', lineHeight: 40 },
+  learnedPctComplete: { color: '#4caf50' },
+  pctSign: { fontSize: 20 },
 });
