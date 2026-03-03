@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
-  Animated, useWindowDimensions, Pressable, Platform,
+  Animated, useWindowDimensions, Pressable, Platform, Modal,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -103,6 +103,9 @@ export default function LearnScreen({ route, navigation }) {
       if (d?.trophies) setDeckTrophies(d.trophies);
     });
   }, []);
+
+  // Quit confirmation modal
+  const [quitVisible, setQuitVisible] = useState(false);
 
   // Trophy tooltip
   const [activeTrophy, setActiveTrophy] = useState(null);
@@ -264,12 +267,17 @@ export default function LearnScreen({ route, navigation }) {
     advance(circulation, null);
   };
 
+  const handleQuit = () => setQuitVisible(true);
+
   if (!currentCard) return null;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* Header — deck info box only */}
       <View style={styles.headerOuter}>
+        <TouchableOpacity style={styles.closeBtn} onPress={handleQuit}>
+          <Ionicons name="close" size={24} color="#aaa" />
+        </TouchableOpacity>
         <View style={styles.deckBox}>
           <Text style={styles.deckName} numberOfLines={1}>{deck.name}</Text>
           <Text style={styles.deckSubtitle} numberOfLines={1}>
@@ -423,6 +431,31 @@ export default function LearnScreen({ route, navigation }) {
           </View>
         </View>
       </View>
+      {/* Quit confirmation modal */}
+      <Modal visible={quitVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>🐔 Bok bok!</Text>
+            <Text style={styles.modalMessage}>
+              Giving up already? Your progress on this round won't be saved.
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalKeepBtn}
+                onPress={() => setQuitVisible(false)}
+              >
+                <Text style={styles.modalKeepText}>Keep going</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalQuitBtn}
+                onPress={() => navigation.goBack()}
+              >
+                <Text style={styles.modalQuitText}>Quit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -478,6 +511,13 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     paddingHorizontal: 20,
     backgroundColor: '#f5f5f5',
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: 14,
+    right: 16,
+    padding: 6,
+    zIndex: 1,
   },
   deckBox: {
     borderWidth: 1.5,
@@ -708,4 +748,62 @@ const styles = StyleSheet.create({
   learnedPct: { fontSize: 36, fontWeight: '700', color: '#222', lineHeight: 40 },
   learnedPctComplete: { color: '#4caf50' },
   pctSign: { fontSize: 20 },
+
+  // Quit modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBox: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 28,
+    width: '80%',
+    maxWidth: 340,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 15,
+    color: '#555',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  modalKeepBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#4a90e2',
+    alignItems: 'center',
+  },
+  modalKeepText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  modalQuitBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#e05252',
+    alignItems: 'center',
+  },
+  modalQuitText: {
+    color: '#e05252',
+    fontSize: 15,
+    fontWeight: '600',
+  },
 });
