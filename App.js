@@ -9,6 +9,8 @@ import NewDeckScreen from './screens/NewDeckScreen';
 import ManualCreateScreen from './screens/ManualCreateScreen';
 import UploadScreen from './screens/UploadScreen';
 import ModeSelectScreen from './screens/ModeSelectScreen';
+import LearnScreen from './screens/LearnScreen';
+import LearnCompleteScreen from './screens/LearnCompleteScreen';
 import QuizScreen from './screens/QuizScreen';
 import EndScreen from './screens/EndScreen';
 import EditDeckScreen from './screens/EditDeckScreen';
@@ -56,6 +58,16 @@ export default function App() {
           name="ModeSelect"
           component={ModeSelectScreen}
           options={{ title: 'Study' }}
+        />
+        <Stack.Screen
+          name="Learn"
+          component={LearnScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="LearnComplete"
+          component={LearnCompleteScreen}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Quiz"
