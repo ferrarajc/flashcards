@@ -1,9 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-export const BRAND  = '#4F46E5';
-export const ACCENT = '#F59E0B';
+import { colors } from '../constants/theme';
 
 export default function AppBar({ navigation, back, options }) {
   const LeftComponent = options?.headerLeft;
@@ -39,7 +37,7 @@ export default function AppBar({ navigation, back, options }) {
 const styles = StyleSheet.create({
   bar: {
     height: 58,
-    backgroundColor: BRAND,
+    backgroundColor: colors.brand,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -56,10 +54,10 @@ const styles = StyleSheet.create({
   wordmark: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#fff',
+    color: colors.surface,
     letterSpacing: -0.3,
   },
   wordmarkAccent: {
-    color: ACCENT,
+    color: colors.accent,
   },
 });

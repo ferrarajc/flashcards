@@ -9,9 +9,9 @@ import SidebarLayout from '../components/SidebarLayout';
 import ScreenContainer from '../components/ScreenContainer';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
-const TROPHY_COLORS = { bronze: '#cd7f32', silver: '#a8a9ad', gold: '#ffd700' };
-const BRAND  = '#4F46E5';
-const ACCENT = '#F59E0B';
+import { colors, shadows, radius } from '../constants/theme';
+
+const TROPHY_COLORS = colors.trophy;
 
 const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 
@@ -201,63 +201,60 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 26, fontWeight: '800', color: '#1E1B4B', marginBottom: 20, marginTop: 10, textAlign: 'center' },
-  empty: { color: '#999', fontSize: 16, textAlign: 'center', marginTop: 60 },
+  title: { fontSize: 26, fontWeight: '800', color: colors.textPrimary, marginBottom: 20, marginTop: 10, textAlign: 'center' },
+  empty: { color: colors.textSecondary, fontSize: 16, textAlign: 'center', marginTop: 60 },
   deckCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
     marginBottom: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.07,
-    shadowRadius: 6,
-    elevation: 2,
+    ...shadows.sm,
   },
   deckAccent: {
     width: 4,
     alignSelf: 'stretch',
-    backgroundColor: BRAND,
+    backgroundColor: colors.brand,
   },
   deckInfo: { flex: 1, padding: 16 },
-  deckName: { fontSize: 17, fontWeight: '700', color: '#1E1B4B' },
+  deckName: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
   deckMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  deckCount: { fontSize: 13, color: '#888' },
+  deckCount: { fontSize: 13, color: colors.textSecondary },
   newBadge: {
-    backgroundColor: BRAND, borderRadius: 10,
+    backgroundColor: colors.brand, borderRadius: radius.badge,
     paddingHorizontal: 8, paddingVertical: 2,
   },
-  newBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  newBadgeText: { color: colors.surface, fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
   trophyMini: { flexDirection: 'row', gap: 3, alignItems: 'center' },
-  divider: { width: 1, height: '60%', backgroundColor: '#e0e0e0' },
+  divider: { width: 1, height: '60%', backgroundColor: colors.border },
   menuBtn: { paddingHorizontal: 10, paddingVertical: 16 },
-  menuDots: { fontSize: 14, color: '#555', letterSpacing: 2 },
+  menuDots: { fontSize: 14, color: colors.textSecondary, letterSpacing: 2 },
   createButton: {
-    backgroundColor: ACCENT,
+    backgroundColor: colors.accent,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: radius.md,
     alignItems: 'center',
     marginTop: 20,
     maxWidth: 340,
     alignSelf: 'center',
     width: '100%',
   },
-  createButtonText: { color: '#1E1B4B', fontSize: 17, fontWeight: '700' },
+  createButtonText: { color: colors.textPrimary, fontSize: 17, fontWeight: '700' },
   modalOverlay: {
     flex: 1, backgroundColor: 'rgba(0,0,0,0.4)',
     alignItems: 'center', justifyContent: 'center',
   },
-  modalBox: { backgroundColor: '#fff', borderRadius: 12, padding: 24, width: '80%' },
+  modalBox: { backgroundColor: colors.surface, borderRadius: radius.md, padding: 24, width: '80%' },
   modalTitle: { fontSize: 18, fontWeight: '600', marginBottom: 12 },
   modalInput: {
-    borderWidth: 1, borderColor: '#ddd', borderRadius: 8,
+    borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm,
     padding: 10, fontSize: 16, marginBottom: 16,
   },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
   modalCancel: { padding: 8 },
-  modalCancelText: { fontSize: 16, color: '#888' },
+  modalCancelText: { fontSize: 16, color: colors.textSecondary },
   modalSave: { padding: 8 },
-  modalSaveText: { fontSize: 16, color: BRAND, fontWeight: '600' },
+  modalSaveText: { fontSize: 16, color: colors.brand, fontWeight: '600' },
   hamburgerBtn: { paddingLeft: 12 },
 });

@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-const BRAND = '#4F46E5';
+import { colors, radius } from '../constants/theme';
 
 export default function Sidebar({ navigation, onClose }) {
   const navigate = (screen, params) => {
@@ -16,7 +15,7 @@ export default function Sidebar({ navigation, onClose }) {
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>MY DECKS</Text>
         <TouchableOpacity style={styles.item} onPress={() => navigate('Home')}>
-          <Ionicons name="albums-outline" size={18} color={BRAND} style={styles.itemIcon} />
+          <Ionicons name="albums-outline" size={18} color={colors.brand} style={styles.itemIcon} />
           <Text style={styles.itemText}>My decks</Text>
         </TouchableOpacity>
       </View>
@@ -24,7 +23,7 @@ export default function Sidebar({ navigation, onClose }) {
       <View style={styles.divider} />
 
       <TouchableOpacity style={styles.newDeckBtn} onPress={() => navigate('NewDeck')}>
-        <Ionicons name="add-circle-outline" size={18} color={BRAND} style={styles.itemIcon} />
+        <Ionicons name="add-circle-outline" size={18} color={colors.brand} style={styles.itemIcon} />
         <Text style={styles.newDeckText}>New deck</Text>
       </TouchableOpacity>
 
@@ -35,7 +34,7 @@ export default function Sidebar({ navigation, onClose }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     paddingTop: 20,
   },
   section: {
@@ -45,7 +44,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#aaa',
+    color: colors.textMuted,
     letterSpacing: 1.2,
     marginBottom: 6,
     paddingHorizontal: 6,
@@ -55,7 +54,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: radius.sm,
   },
   itemIcon: {
     marginRight: 10,
@@ -63,11 +62,11 @@ const styles = StyleSheet.create({
   itemText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1E1B4B',
+    color: colors.textPrimary,
   },
   divider: {
     height: 1,
-    backgroundColor: '#EEE',
+    backgroundColor: colors.borderLight,
     marginHorizontal: 16,
     marginVertical: 8,
   },
@@ -77,11 +76,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     paddingHorizontal: 10,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: radius.sm,
   },
   newDeckText: {
     fontSize: 15,
     fontWeight: '600',
-    color: BRAND,
+    color: colors.brand,
   },
 });

@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import Papa from 'papaparse';
+import { colors, radius } from '../constants/theme';
 
 async function readFileAsString(uri) {
   if (Platform.OS === 'web') {
@@ -85,31 +86,31 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
     padding: 20,
   },
   heading: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#222',
+    color: colors.textPrimary,
     marginBottom: 8,
   },
   sub: {
     fontSize: 15,
-    color: '#888',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 12,
   },
   button: {
-    backgroundColor: '#4a90e2',
+    backgroundColor: colors.brand,
     paddingHorizontal: 28,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: radius.sm,
     minWidth: 120,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: colors.surface,
     fontSize: 16,
     fontWeight: '600',
   },

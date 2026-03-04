@@ -5,12 +5,13 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, shadows, radius } from '../constants/theme';
 
 const MAX_FONT = 24;
 const MIN_FONT = 10;
 const MAX_WIDTH = 480;
 
-const TROPHY_COLORS = { bronze: '#cd7f32', silver: '#a8a9ad', gold: '#ffd700' };
+const TROPHY_COLORS = colors.trophy;
 
 const TROPHY_INFO = {
   bronze: { name: 'Bronze Trophy', desc: 'Awarded for completing the deck the first time' },
@@ -308,7 +309,7 @@ export default function LearnScreen({ route, navigation }) {
                     <Ionicons
                       name={earned ? 'trophy' : 'trophy-outline'}
                       size={20}
-                      color={earned ? TROPHY_COLORS[tier] : '#ccc'}
+                      color={earned ? TROPHY_COLORS[tier] : colors.border}
                     />
                   </Pressable>
                   {activeTrophy === tier && (
@@ -501,7 +502,7 @@ async function saveSessionData(totalGotten, perfectSession, deck, sessionMissCou
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
   },
 
   // Header — just the deck box, centered
@@ -510,7 +511,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 14,
     paddingHorizontal: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
   },
   closeBtn: {
     position: 'absolute',
@@ -521,22 +522,22 @@ const styles = StyleSheet.create({
   },
   deckBox: {
     borderWidth: 1.5,
-    borderColor: '#d0d0d0',
-    borderRadius: 12,
+    borderColor: colors.border,
+    borderRadius: radius.md,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     gap: 4,
   },
   deckName: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#222',
+    color: colors.textPrimary,
   },
   deckSubtitle: {
     fontSize: 12,
-    color: '#aaa',
+    color: colors.textMuted,
   },
 
   // Trophy row — inside the deck box
@@ -556,14 +557,11 @@ const styles = StyleSheet.create({
   trophyTooltip: {
     position: 'absolute',
     bottom: 32,
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.14,
-    shadowRadius: 8,
-    elevation: 6,
+    ...shadows.overlay,
     zIndex: 20,
     minWidth: 200,
     alignItems: 'center',
@@ -571,12 +569,12 @@ const styles = StyleSheet.create({
   trophyTooltipName: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#222',
+    color: colors.textPrimary,
     marginBottom: 3,
   },
   trophyTooltipDesc: {
     fontSize: 12,
-    color: '#888',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
 
@@ -607,7 +605,7 @@ const styles = StyleSheet.create({
   },
   promptText: {
     fontSize: 14,
-    color: '#888',
+    color: colors.textSecondary,
     fontStyle: 'italic',
     textAlign: 'center',
   },
@@ -615,18 +613,15 @@ const styles = StyleSheet.create({
   // Card
   card: {
     minHeight: 250,
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
     padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    ...shadows.md,
   },
   cardAnswer: {
-    backgroundColor: '#5b6cdb',
+    backgroundColor: colors.cardBack,
   },
   cardContent: {
     width: '100%',
@@ -634,7 +629,7 @@ const styles = StyleSheet.create({
   },
   questionText: {
     textAlign: 'center',
-    color: '#222',
+    color: colors.textPrimary,
     fontWeight: '500',
   },
   questionPreview: {
@@ -664,48 +659,48 @@ const styles = StyleSheet.create({
   skipBtn: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 100,
-    backgroundColor: '#e0e0e0',
+    borderRadius: radius.pill,
+    backgroundColor: colors.border,
     alignItems: 'center',
   },
   skipText: {
-    color: '#555',
+    color: colors.textSecondary,
     fontSize: 16,
     fontWeight: '600',
   },
   flipBtn: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 100,
-    backgroundColor: '#5b6cdb',
+    borderRadius: radius.pill,
+    backgroundColor: colors.cardBack,
     alignItems: 'center',
   },
   flipText: {
-    color: '#fff',
+    color: colors.surface,
     fontSize: 16,
     fontWeight: '600',
   },
   didntGetBtn: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 100,
-    backgroundColor: '#e05252',
+    borderRadius: radius.pill,
+    backgroundColor: colors.danger,
     alignItems: 'center',
   },
   didntGetText: {
-    color: '#fff',
+    color: colors.surface,
     fontSize: 16,
     fontWeight: '700',
   },
   gotItBtn: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 100,
-    backgroundColor: '#4caf50',
+    borderRadius: radius.pill,
+    backgroundColor: colors.success,
     alignItems: 'center',
   },
   gotItText: {
-    color: '#fff',
+    color: colors.surface,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -713,7 +708,7 @@ const styles = StyleSheet.create({
   // Divider between buttons and stats
   statsDivider: {
     height: 1,
-    backgroundColor: '#e8e8e8',
+    backgroundColor: colors.borderLight,
   },
 
   // Stats — bottom of body
@@ -740,13 +735,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
-  statLabelRed: { color: '#e05252' },
-  statNumRed: { fontSize: 28, fontWeight: '700', color: '#e05252', lineHeight: 32 },
-  statLabelGreen: { color: '#4caf50' },
-  statNumGreen: { fontSize: 28, fontWeight: '700', color: '#4caf50', lineHeight: 32 },
-  statLabelCenter: { color: '#888' },
-  learnedPct: { fontSize: 36, fontWeight: '700', color: '#222', lineHeight: 40 },
-  learnedPctComplete: { color: '#4caf50' },
+  statLabelRed: { color: colors.danger },
+  statNumRed: { fontSize: 28, fontWeight: '700', color: colors.danger, lineHeight: 32 },
+  statLabelGreen: { color: colors.success },
+  statNumGreen: { fontSize: 28, fontWeight: '700', color: colors.success, lineHeight: 32 },
+  statLabelCenter: { color: colors.textSecondary },
+  learnedPct: { fontSize: 36, fontWeight: '700', color: colors.textPrimary, lineHeight: 40 },
+  learnedPctComplete: { color: colors.success },
   pctSign: { fontSize: 20 },
 
   // Quit modal
@@ -757,8 +752,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalBox: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
     padding: 28,
     width: '80%',
     maxWidth: 340,
@@ -771,7 +766,7 @@ const styles = StyleSheet.create({
   },
   modalMessage: {
     fontSize: 15,
-    color: '#555',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 22,
@@ -784,25 +779,25 @@ const styles = StyleSheet.create({
   modalKeepBtn: {
     flex: 1,
     paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: '#4a90e2',
+    borderRadius: radius.sm,
+    backgroundColor: colors.brand,
     alignItems: 'center',
   },
   modalKeepText: {
-    color: '#fff',
+    color: colors.surface,
     fontSize: 15,
     fontWeight: '600',
   },
   modalQuitBtn: {
     flex: 1,
     paddingVertical: 12,
-    borderRadius: 10,
+    borderRadius: radius.sm,
     borderWidth: 1.5,
-    borderColor: '#e05252',
+    borderColor: colors.danger,
     alignItems: 'center',
   },
   modalQuitText: {
-    color: '#e05252',
+    color: colors.danger,
     fontSize: 15,
     fontWeight: '600',
   },

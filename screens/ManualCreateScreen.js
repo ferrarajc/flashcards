@@ -5,6 +5,7 @@ import {
   Alert, ActionSheetIOS, useWindowDimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { colors, shadows, radius } from '../constants/theme';
 
 const MAX_FONT = 22;
 const MIN_FONT = 10;
@@ -153,8 +154,8 @@ export default function ManualCreateScreen({ navigation }) {
         id: Date.now().toString(),
         name: deckName.trim() || 'Untitled deck',
         cards: validCards,
-        frontColor: '#FFFFFF',
-        backColor: '#4a90e2',
+        frontColor: colors.surface,
+        backColor: colors.cardBack,
         isNew: true,
         createdAt: Date.now(),
       };
@@ -215,8 +216,8 @@ export default function ManualCreateScreen({ navigation }) {
                 const card = cards[cardIndex];
                 const isBack = side === 'back';
                 const hasFrontText = isBack && !!card.front.trim();
-                const cardBg = isBack ? '#4a90e2' : '#FFFFFF';
-                const textColor = isBack ? '#fff' : '#222';
+                const cardBg = isBack ? colors.cardBack : colors.surface;
+                const textColor = isBack ? colors.surface : colors.textPrimary;
                 const chromeColor = isBack ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.2)';
                 const placeholderColor = isBack ? 'rgba(255,255,255,0.35)' : '#bbb';
                 const fontSize = getFontSize(card.id, side);
@@ -310,7 +311,7 @@ export default function ManualCreateScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f5f5f5' },
+  safeArea: { flex: 1, backgroundColor: colors.background },
 
   // Header
   header: {
@@ -318,9 +319,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: colors.border,
   },
   headerSpacer: { minWidth: 52, paddingHorizontal: 6 },
   headerBtn: { padding: 6, minWidth: 52, alignItems: 'flex-end' },
@@ -329,10 +330,10 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     textAlign: 'center',
-    color: '#222',
+    color: colors.textPrimary,
     paddingVertical: 4,
   },
-  doneText: { color: '#4a90e2', fontWeight: '700', fontSize: 16 },
+  doneText: { color: colors.brand, fontWeight: '700', fontSize: 16 },
 
   // Card area
   cardArea: { flex: 1, position: 'relative' },
@@ -346,15 +347,11 @@ const styles = StyleSheet.create({
 
   card: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     paddingHorizontal: 16,
     paddingTop: 4,
     paddingBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
+    ...shadows.lg,
   },
 
   // Top bar: Front/Back label on left, ••• on right
@@ -425,28 +422,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.92)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    ...shadows.sm,
   },
   arrowCircleDisabled: { opacity: 0.25 },
-  arrowText: { fontSize: 26, color: '#4a90e2', lineHeight: 30 },
-  arrowTextDisabled: { color: '#aaa' },
+  arrowText: { fontSize: 26, color: colors.brand, lineHeight: 30 },
+  arrowTextDisabled: { color: colors.textMuted },
 
   arrowCircleAdd: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#4a90e2',
+    backgroundColor: colors.brand,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    ...shadows.sm,
   },
-  arrowTextAdd: { fontSize: 24, color: '#fff', fontWeight: '700', lineHeight: 28 },
+  arrowTextAdd: { fontSize: 24, color: colors.surface, fontWeight: '700', lineHeight: 28 },
 });

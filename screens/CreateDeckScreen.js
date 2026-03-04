@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import Papa from 'papaparse';
+import { colors, radius } from '../constants/theme';
 
 const MAX_CONTENT_WIDTH = 680;
 
@@ -63,7 +64,13 @@ export default function CreateDeckScreen({ navigation }) {
     try {
       const stored = await AsyncStorage.getItem('decks');
       const decks = stored ? JSON.parse(stored) : [];
-      const newDeck = { id: Date.now().toString(), name: deckName.trim(), cards: validCards, isNew: true, createdAt: Date.now() };
+      const newDeck = {
+        id: Date.now().toString(),
+        name: deckName.trim(),
+        cards: validCards,
+        isNew: true,
+        createdAt: Date.now(),
+      };
       await AsyncStorage.setItem('decks', JSON.stringify([...decks, newDeck]));
       navigation.goBack();
     } catch (e) {
@@ -83,7 +90,7 @@ export default function CreateDeckScreen({ navigation }) {
         />
 
         <TouchableOpacity style={styles.csvButton} onPress={importCSV} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.csvButtonText}>Import from CSV</Text>}
+          {loading ? <ActivityIndicator color={colors.surface} /> : <Text style={styles.csvButtonText}>Import from CSV</Text>}
         </TouchableOpacity>
         <Text style={styles.csvHint}>CSV format: column 1 = front, column 2 = back</Text>
 
@@ -128,38 +135,63 @@ export default function CreateDeckScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: '#f5f5f5' },
+  scroll: { flex: 1, backgroundColor: colors.background },
   contentContainer: { alignItems: 'center' },
   inner: { width: '100%', maxWidth: MAX_CONTENT_WIDTH, padding: 20 },
-  label: { fontSize: 16, fontWeight: '600', marginTop: 16, marginBottom: 6 },
+  label: { fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginTop: 16, marginBottom: 6 },
   input: {
-    backgroundColor: '#fff', borderRadius: 8, padding: 12,
-    fontSize: 16, borderWidth: 1, borderColor: '#ddd',
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
+    padding: 12,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   csvButton: {
-    backgroundColor: '#5a9e6f', padding: 12, borderRadius: 8,
-    alignItems: 'center', marginTop: 16,
-    maxWidth: 340, alignSelf: 'center', width: '100%',
+    backgroundColor: colors.brand,
+    padding: 12,
+    borderRadius: radius.sm,
+    alignItems: 'center',
+    marginTop: 16,
+    maxWidth: 340,
+    alignSelf: 'center',
+    width: '100%',
   },
-  csvButtonText: { color: '#fff', fontSize: 15, fontWeight: '600' },
-  csvHint: { color: '#999', fontSize: 12, marginTop: 4, marginBottom: 8 },
+  csvButtonText: { color: colors.surface, fontSize: 15, fontWeight: '600' },
+  csvHint: { color: colors.textSecondary, fontSize: 12, marginTop: 4, marginBottom: 8 },
   cardRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
   cardInputs: { flex: 1 },
   cardInput: {
-    backgroundColor: '#fff', borderRadius: 8, padding: 10,
-    fontSize: 14, borderWidth: 1, borderColor: '#ddd', marginBottom: 6,
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
+    padding: 10,
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 6,
   },
   removeBtn: { marginLeft: 8, paddingTop: 10 },
-  removeText: { fontSize: 18, color: '#cc3333' },
+  removeText: { fontSize: 18, color: colors.danger },
   addCardBtn: {
-    borderWidth: 1, borderColor: '#4a90e2', borderRadius: 8,
-    padding: 10, alignItems: 'center', marginBottom: 16,
-    maxWidth: 340, alignSelf: 'center', width: '100%',
+    borderWidth: 1,
+    borderColor: colors.brand,
+    borderRadius: radius.sm,
+    padding: 10,
+    alignItems: 'center',
+    marginBottom: 16,
+    maxWidth: 340,
+    alignSelf: 'center',
+    width: '100%',
   },
-  addCardText: { color: '#4a90e2', fontSize: 15, fontWeight: '600' },
+  addCardText: { color: colors.brand, fontSize: 15, fontWeight: '600' },
   saveButton: {
-    backgroundColor: '#4a90e2', padding: 16, borderRadius: 12, alignItems: 'center',
-    maxWidth: 340, alignSelf: 'center', width: '100%',
+    backgroundColor: colors.brand,
+    padding: 16,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    maxWidth: 340,
+    alignSelf: 'center',
+    width: '100%',
   },
-  saveButtonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
+  saveButtonText: { color: colors.surface, fontSize: 18, fontWeight: '600' },
 });
