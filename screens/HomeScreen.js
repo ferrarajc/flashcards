@@ -10,6 +10,8 @@ import ScreenContainer from '../components/ScreenContainer';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 const TROPHY_COLORS = { bronze: '#cd7f32', silver: '#a8a9ad', gold: '#ffd700' };
+const BRAND  = '#4F46E5';
+const ACCENT = '#F59E0B';
 
 const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 
@@ -48,9 +50,7 @@ export default function HomeScreen({ navigation }) {
     navigation.setOptions({
       headerLeft: isPhone ? () => (
         <TouchableOpacity onPress={() => setSidebarOpen(true)} style={styles.hamburgerBtn}>
-          <View style={styles.bar} />
-          <View style={styles.bar} />
-          <View style={styles.bar} />
+          <Ionicons name="menu" size={26} color="#fff" />
         </TouchableOpacity>
       ) : () => null,
     });
@@ -131,6 +131,8 @@ export default function HomeScreen({ navigation }) {
             keyExtractor={item => item.id}
             renderItem={({ item }) => (
               <View style={styles.deckCard}>
+                {/* Accent strip */}
+                <View style={styles.deckAccent} />
                 <TouchableOpacity
                   style={styles.deckInfo}
                   onPress={() => { clearNewBadge(item); navigation.navigate('ModeSelect', { deck: item }); }}
@@ -143,7 +145,7 @@ export default function HomeScreen({ navigation }) {
                         <Text style={styles.newBadgeText}>New</Text>
                       </View>
                     )}
-                    {/* Earned trophies — filled icons only, no outlines for unearned */}
+                    {/* Earned trophies */}
                     {['bronze', 'silver', 'gold'].some(t => item.trophies?.[t]) && (
                       <View style={styles.trophyMini}>
                         {['bronze', 'silver', 'gold'].map(tier =>
@@ -199,19 +201,31 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, marginTop: 10, textAlign: 'center' },
+  title: { fontSize: 26, fontWeight: '800', color: '#1E1B4B', marginBottom: 20, marginTop: 10, textAlign: 'center' },
   empty: { color: '#999', fontSize: 16, textAlign: 'center', marginTop: 60 },
   deckCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-    borderRadius: 10, marginBottom: 12,
-    shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginBottom: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  deckAccent: {
+    width: 4,
+    alignSelf: 'stretch',
+    backgroundColor: BRAND,
   },
   deckInfo: { flex: 1, padding: 16 },
-  deckName: { fontSize: 18, fontWeight: '600' },
+  deckName: { fontSize: 17, fontWeight: '700', color: '#1E1B4B' },
   deckMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
   deckCount: { fontSize: 13, color: '#888' },
   newBadge: {
-    backgroundColor: '#4a90e2', borderRadius: 10,
+    backgroundColor: BRAND, borderRadius: 10,
     paddingHorizontal: 8, paddingVertical: 2,
   },
   newBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
@@ -220,11 +234,16 @@ const styles = StyleSheet.create({
   menuBtn: { paddingHorizontal: 10, paddingVertical: 16 },
   menuDots: { fontSize: 14, color: '#555', letterSpacing: 2 },
   createButton: {
-    backgroundColor: '#4a90e2', padding: 16, borderRadius: 12,
-    alignItems: 'center', marginTop: 20,
-    maxWidth: 340, alignSelf: 'center', width: '100%',
+    backgroundColor: ACCENT,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 20,
+    maxWidth: 340,
+    alignSelf: 'center',
+    width: '100%',
   },
-  createButtonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
+  createButtonText: { color: '#1E1B4B', fontSize: 17, fontWeight: '700' },
   modalOverlay: {
     flex: 1, backgroundColor: 'rgba(0,0,0,0.4)',
     alignItems: 'center', justifyContent: 'center',
@@ -239,7 +258,6 @@ const styles = StyleSheet.create({
   modalCancel: { padding: 8 },
   modalCancelText: { fontSize: 16, color: '#888' },
   modalSave: { padding: 8 },
-  modalSaveText: { fontSize: 16, color: '#4a90e2', fontWeight: '600' },
-  hamburgerBtn: { paddingLeft: 16, gap: 5 },
-  bar: { width: 22, height: 2, backgroundColor: '#333', borderRadius: 2 },
+  modalSaveText: { fontSize: 16, color: BRAND, fontWeight: '600' },
+  hamburgerBtn: { paddingLeft: 12 },
 });

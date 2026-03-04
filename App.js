@@ -1,5 +1,4 @@
 import React from 'react';
-import { useWindowDimensions } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -14,76 +13,29 @@ import LearnCompleteScreen from './screens/LearnCompleteScreen';
 import QuizScreen from './screens/QuizScreen';
 import EndScreen from './screens/EndScreen';
 import EditDeckScreen from './screens/EditDeckScreen';
-import AppHeader from './components/AppHeader';
-import { BREAKPOINTS } from './hooks/useBreakpoint';
+import AppBar from './components/AppHeader';
 
 const Stack = createStackNavigator();
 
 export default function App() {
-  const { width } = useWindowDimensions();
-  const isPhone = width < BREAKPOINTS.phone;
-
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={({ navigation }) => isPhone
-            ? { title: 'FlashyCards' }
-            : { header: () => <AppHeader onHomePress={() => navigation.navigate('Home')} /> }
-          }
-        />
-        <Stack.Screen
-          name="CreateDeck"
-          component={CreateDeckScreen}
-          options={{ title: 'New Deck' }}
-        />
-        <Stack.Screen
-          name="NewDeck"
-          component={NewDeckScreen}
-          options={{ title: 'New Deck' }}
-        />
-        <Stack.Screen
-          name="ManualCreate"
-          component={ManualCreateScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Upload"
-          component={UploadScreen}
-          options={{ title: 'Upload' }}
-        />
-        <Stack.Screen
-          name="ModeSelect"
-          component={ModeSelectScreen}
-          options={{ title: 'Study' }}
-        />
-        <Stack.Screen
-          name="Learn"
-          component={LearnScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="LearnComplete"
-          component={LearnCompleteScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Quiz"
-          component={QuizScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="End"
-          component={EndScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="EditDeck"
-          component={EditDeckScreen}
-          options={({ route }) => ({ title: route.params.deck.name })}
-        />
+      <Stack.Navigator
+        screenOptions={{
+          header: (props) => <AppBar {...props} />,
+        }}
+      >
+        <Stack.Screen name="Home"          component={HomeScreen} />
+        <Stack.Screen name="NewDeck"       component={NewDeckScreen} />
+        <Stack.Screen name="CreateDeck"    component={CreateDeckScreen} />
+        <Stack.Screen name="Upload"        component={UploadScreen} />
+        <Stack.Screen name="ModeSelect"    component={ModeSelectScreen} />
+        <Stack.Screen name="EditDeck"      component={EditDeckScreen} />
+        <Stack.Screen name="ManualCreate"  component={ManualCreateScreen}    options={{ headerShown: false }} />
+        <Stack.Screen name="Learn"         component={LearnScreen}           options={{ headerShown: false }} />
+        <Stack.Screen name="LearnComplete" component={LearnCompleteScreen}   options={{ headerShown: false }} />
+        <Stack.Screen name="Quiz"          component={QuizScreen}            options={{ headerShown: false }} />
+        <Stack.Screen name="End"           component={EndScreen}             options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

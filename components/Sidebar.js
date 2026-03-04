@@ -1,5 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+const BRAND = '#4F46E5';
 
 export default function Sidebar({ navigation, onClose }) {
   const navigate = (screen, params) => {
@@ -9,15 +12,22 @@ export default function Sidebar({ navigation, onClose }) {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.item} onPress={() => navigate('Home')}>
-        <Text style={styles.itemText}>My decks</Text>
-      </TouchableOpacity>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>MY DECKS</Text>
+        <TouchableOpacity style={styles.item} onPress={() => navigate('Home')}>
+          <Ionicons name="albums-outline" size={18} color={BRAND} style={styles.itemIcon} />
+          <Text style={styles.itemText}>My decks</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.divider} />
 
-      <TouchableOpacity style={styles.item} onPress={() => navigate('NewDeck')}>
-        <Text style={styles.newDeckText}>+ New deck</Text>
+      <TouchableOpacity style={styles.newDeckBtn} onPress={() => navigate('NewDeck')}>
+        <Ionicons name="add-circle-outline" size={18} color={BRAND} style={styles.itemIcon} />
+        <Text style={styles.newDeckText}>New deck</Text>
       </TouchableOpacity>
+
     </View>
   );
 }
@@ -25,32 +35,53 @@ export default function Sidebar({ navigation, onClose }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 16,
     backgroundColor: '#fff',
+    paddingTop: 20,
+  },
+  section: {
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  sectionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#aaa',
+    letterSpacing: 1.2,
+    marginBottom: 6,
+    paddingHorizontal: 6,
   },
   item: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  itemIcon: {
+    marginRight: 10,
   },
   itemText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#222',
+    color: '#1E1B4B',
   },
   divider: {
     height: 1,
-    backgroundColor: '#e0e0e0',
-    marginHorizontal: 20,
+    backgroundColor: '#EEE',
+    marginHorizontal: 16,
     marginVertical: 8,
   },
-  newDeckText: {
-    fontSize: 16,
-    color: '#4a90e2',
-    fontWeight: '600',
+  newDeckBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
-  importText: {
-    fontSize: 16,
-    color: '#4a90e2',
+  newDeckText: {
+    fontSize: 15,
     fontWeight: '600',
+    color: BRAND,
   },
 });

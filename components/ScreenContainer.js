@@ -19,7 +19,7 @@ export default function ScreenContainer({ children, style }) {
 const styles = StyleSheet.create({
   outer: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F5F4FF',
     alignItems: 'center',
   },
   inner: {
