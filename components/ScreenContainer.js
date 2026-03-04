@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import { colors } from '../constants/theme';
 
 const MAX_CONTENT_WIDTH = 680;
 
@@ -19,7 +20,7 @@ export default function ScreenContainer({ children, style }) {
 const styles = StyleSheet.create({
   outer: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
     alignItems: 'center',
   },
   inner: {

@@ -1,0 +1,25 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.5.2 Chrome/142.0.7444.265 Electron/39.6.1 Safari/537.36" version="29.5.2">
+  <diagram name="Page-1" id="yZsFxm7iK33ZpRRt8Aop">
+    <mxGraphModel dx="550" dy="400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="C2ZnCqTzJ48vFAdFHmoP-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="120" width="260" x="100" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="C2ZnCqTzJ48vFAdFHmoP-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=16;" value="[question]" vertex="1">
+          <mxGeometry height="140" width="260" x="100" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="C2ZnCqTzJ48vFAdFHmoP-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=35;" value="Got it" vertex="1">
+          <mxGeometry height="30" width="120" x="690" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="C2ZnCqTzJ48vFAdFHmoP-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=35;" value="Got it" vertex="1">
+          <mxGeometry height="30" width="120" x="540" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="C2ZnCqTzJ48vFAdFHmoP-8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=2;fontFamily=Georgia;fontColor=#545454;" value="Think. If you know the answer, say it out loud." vertex="1">
+          <mxGeometry height="30" width="260" x="100" y="361" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

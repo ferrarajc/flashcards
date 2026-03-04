@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { colors, radius } from '../constants/theme';
 
 export default function ModeSelectScreen({ route, navigation }) {
   const { deck } = route.params;
@@ -37,32 +38,32 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
     padding: 24,
   },
   deckName: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#222',
+    color: colors.textPrimary,
     marginBottom: 4,
     textAlign: 'center',
   },
   cardCount: {
     fontSize: 14,
-    color: '#888',
+    color: colors.textSecondary,
     marginBottom: 40,
   },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
     padding: 16,
     width: '100%',
     maxWidth: 340,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: colors.border,
   },
   optionDisabled: {
     opacity: 0.45,
@@ -77,18 +78,18 @@ const styles = StyleSheet.create({
   optionLabel: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#222',
+    color: colors.textPrimary,
     marginBottom: 2,
   },
   optionLabelDisabled: {
-    color: '#888',
+    color: colors.textSecondary,
   },
   optionDesc: {
     fontSize: 13,
-    color: '#aaa',
+    color: colors.textMuted,
   },
   chevron: {
     fontSize: 22,
-    color: '#aaa',
+    color: colors.textMuted,
   },
 });

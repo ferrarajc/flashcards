@@ -3,12 +3,12 @@ import {
   View, Text, TouchableOpacity, StyleSheet, Animated, useWindowDimensions,
   Alert, SafeAreaView
 } from 'react-native';
+import { colors, shadows, radius } from '../constants/theme';
 
 const CARD_PADDING = 24;
 const MAX_CARD_WIDTH = 640;
 const MAX_FONT = 28;
 const MIN_FONT = 8;
-// Space reserved at top of back face for the question + separator
 const BACK_QUESTION_AREA = 52;
 
 export default function QuizScreen({ route, navigation }) {
@@ -48,7 +48,6 @@ export default function QuizScreen({ route, navigation }) {
 
   const handleBackLayout = useCallback((e) => {
     const h = e.nativeEvent.lines.reduce((sum, l) => sum + l.height, 0);
-    // Back face has less room — the question text occupies the top
     const backAvailable = availableHeight.current - BACK_QUESTION_AREA;
     if (h > backAvailable && backSizeRef.current > MIN_FONT) {
       backSizeRef.current -= 1;
@@ -86,7 +85,7 @@ export default function QuizScreen({ route, navigation }) {
   const exitQuiz = () => {
     Alert.alert(
       'Exit session?',
-      'Your progress won\'t be saved.',
+      "Your progress won't be saved.",
       [
         { text: 'Keep going', style: 'cancel' },
         { text: 'Exit', style: 'destructive', onPress: () => navigation.navigate('Home') },
@@ -95,7 +94,6 @@ export default function QuizScreen({ route, navigation }) {
   };
 
   const isBack = flipped;
-  const cardStyle = isBack ? styles.cardBack : styles.cardFront;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -116,7 +114,6 @@ export default function QuizScreen({ route, navigation }) {
           {card.back}
         </Text>
 
-        {/* Close button */}
         <TouchableOpacity style={styles.closeBtn} onPress={exitQuiz}>
           <Text style={styles.closeText}>✕</Text>
         </TouchableOpacity>
@@ -131,19 +128,23 @@ export default function QuizScreen({ route, navigation }) {
           style={[styles.cardContainer, { width: cardWidth, height: cardHeight }]}
         >
           <Animated.View
-            style={[styles.card, cardStyle, { transform: [{ scaleX: scaleAnim }] }]}
+            style={[
+              styles.card,
+              isBack ? styles.cardBack : styles.cardFront,
+              { transform: [{ scaleX: scaleAnim }] },
+            ]}
             onLayout={handleCardLayout}
           >
             {isBack ? (
               <View style={styles.backContent}>
                 <Text style={styles.backQuestion} numberOfLines={2}>{card.front}</Text>
                 <View style={styles.backSeparator} />
-                <Text style={[styles.cardText, { fontSize: backSize, color: '#fff' }]}>
+                <Text style={[styles.cardText, { fontSize: backSize, color: colors.surface }]}>
                   {card.back}
                 </Text>
               </View>
             ) : (
-              <Text style={[styles.cardText, { fontSize: frontSize, color: '#222' }]}>
+              <Text style={[styles.cardText, { fontSize: frontSize, color: colors.textPrimary }]}>
                 {card.front}
               </Text>
             )}
@@ -161,11 +162,14 @@ export default function QuizScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
   },
   container: {
-    flex: 1, backgroundColor: '#f5f5f5',
-    alignItems: 'center', justifyContent: 'center', padding: 20,
+    flex: 1,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
   },
   measureText: {
     position: 'absolute',
@@ -182,20 +186,23 @@ const styles = StyleSheet.create({
   },
   closeText: {
     fontSize: 20,
-    color: '#888',
+    color: colors.textSecondary,
   },
-  progress: { fontSize: 14, color: '#888', marginBottom: 4 },
-  deckName: { fontSize: 20, fontWeight: '700', marginBottom: 4 },
-  hint: { fontSize: 13, color: '#aaa', marginBottom: 20 },
+  progress: { fontSize: 14, color: colors.textSecondary, marginBottom: 4 },
+  deckName: { fontSize: 20, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
+  hint: { fontSize: 13, color: colors.textMuted, marginBottom: 20 },
   cardContainer: {},
   card: {
-    width: '100%', height: '100%',
-    borderRadius: 16, padding: CARD_PADDING,
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8, elevation: 4,
+    width: '100%',
+    height: '100%',
+    borderRadius: radius.lg,
+    padding: CARD_PADDING,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.md,
   },
-  cardFront: { backgroundColor: '#fff' },
-  cardBack: { backgroundColor: '#4a90e2' },
+  cardFront: { backgroundColor: colors.surface },
+  cardBack:  { backgroundColor: colors.cardBack },
   backContent: {
     width: '100%',
     alignItems: 'center',
@@ -219,8 +226,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   nextButton: {
-    marginTop: 32, backgroundColor: '#333',
-    paddingHorizontal: 40, paddingVertical: 14, borderRadius: 12,
+    marginTop: 32,
+    backgroundColor: colors.brand,
+    paddingHorizontal: 40,
+    paddingVertical: 14,
+    borderRadius: radius.md,
   },
-  nextButtonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
+  nextButtonText: { color: colors.surface, fontSize: 18, fontWeight: '600' },
 });

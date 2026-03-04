@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import ScreenContainer from '../components/ScreenContainer';
+import { colors, radius } from '../constants/theme';
 
 export default function EndScreen({ route, navigation }) {
   const { deckName, total } = route.params;
@@ -28,12 +29,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emoji: { fontSize: 64, marginBottom: 16 },
-  title: { fontSize: 32, fontWeight: 'bold', marginBottom: 12 },
-  subtitle: { fontSize: 18, color: '#555', textAlign: 'center' },
-  deckName: { fontSize: 20, fontWeight: '600', color: '#4a90e2', marginTop: 8, marginBottom: 40 },
+  title: { fontSize: 32, fontWeight: 'bold', color: colors.textPrimary, marginBottom: 12 },
+  subtitle: { fontSize: 18, color: colors.textSecondary, textAlign: 'center' },
+  deckName: { fontSize: 20, fontWeight: '600', color: colors.brand, marginTop: 8, marginBottom: 40 },
   button: {
-    backgroundColor: '#4a90e2', paddingHorizontal: 40,
-    paddingVertical: 14, borderRadius: 12,
+    backgroundColor: colors.brand,
+    paddingHorizontal: 40,
+    paddingVertical: 14,
+    borderRadius: radius.md,
   },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
+  buttonText: { color: colors.surface, fontSize: 18, fontWeight: '600' },
 });

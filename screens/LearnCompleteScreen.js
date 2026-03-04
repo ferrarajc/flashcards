@@ -3,14 +3,14 @@ import {
   View, Text, TouchableOpacity, StyleSheet, Animated, SafeAreaView, ScrollView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, shadows, radius } from '../constants/theme';
 
-
-const TROPHY_COLORS = { bronze: '#cd7f32', silver: '#a8a9ad', gold: '#ffd700' };
+const TROPHY_COLORS = colors.trophy;
 const TROPHY_NAMES  = { bronze: 'Bronze',  silver: 'Silver',  gold: 'Gold'   };
 
 const CONFETTI_COLORS = [
-  '#e05252', '#4caf50', '#4a90e2', '#ffd700',
-  '#ff69b4', '#5b6cdb', '#ff9800', '#00bcd4',
+  colors.danger, colors.success, colors.brand, colors.trophy.gold,
+  '#ff69b4', colors.cardBack, '#ff9800', '#00bcd4',
 ];
 const CONFETTI_COUNT = 32;
 
@@ -165,7 +165,7 @@ export default function LearnCompleteScreen({ route, navigation }) {
               </View>
               {Platform.OS === 'web' && (
                 <TouchableOpacity style={styles.downloadBtn} onPress={downloadCSV}>
-                  <Ionicons name="download-outline" size={18} color="#4a90e2" />
+                  <Ionicons name="download-outline" size={18} color={colors.brand} />
                   <Text style={styles.downloadText}>Download</Text>
                 </TouchableOpacity>
               )}
@@ -179,7 +179,7 @@ export default function LearnCompleteScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f5f5f5' },
+  safeArea: { flex: 1, backgroundColor: colors.background },
   scrollContent: {
     alignItems: 'center',
     paddingHorizontal: 24,
@@ -201,30 +201,27 @@ const styles = StyleSheet.create({
   finished: {
     fontSize: 56,
     fontWeight: '800',
-    color: '#4caf50',
+    color: colors.success,
     marginBottom: 8,
   },
-  deckName: { fontSize: 15, color: '#aaa', marginBottom: 40 },
+  deckName: { fontSize: 15, color: colors.textMuted, marginBottom: 40 },
 
   // Trophy earned card
   trophyEarnedRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
     padding: 20,
     paddingRight: 28,
     marginBottom: 40,
     width: '100%',
     maxWidth: 420,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
+    ...shadows.sm,
   },
   trophyIcon: { marginRight: 20 },
   trophyEarnedMsg: { flex: 1 },
-  trophyEarnedLine1: { fontSize: 16, color: '#888', marginBottom: 2 },
+  trophyEarnedLine1: { fontSize: 16, color: colors.textSecondary, marginBottom: 2 },
   trophyEarnedLine2: { fontSize: 26, fontWeight: '800', lineHeight: 30 },
 
   // Buttons
@@ -237,20 +234,20 @@ const styles = StyleSheet.create({
   secondaryBtn: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: radius.md,
     borderWidth: 1.5,
-    borderColor: '#4a90e2',
+    borderColor: colors.brand,
     alignItems: 'center',
   },
-  secondaryText: { color: '#4a90e2', fontSize: 16, fontWeight: '600' },
+  secondaryText: { color: colors.brand, fontSize: 16, fontWeight: '600' },
   primaryBtn: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#4a90e2',
+    borderRadius: radius.md,
+    backgroundColor: colors.brand,
     alignItems: 'center',
   },
-  primaryText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  primaryText: { color: colors.surface, fontSize: 16, fontWeight: '600' },
 
   // Study guide header
   studyGuide: {
@@ -263,8 +260,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
-  studyTitle: { fontSize: 20, fontWeight: '700', color: '#222', marginBottom: 3 },
-  studySubtitle: { fontSize: 13, color: '#aaa' },
+  studyTitle: { fontSize: 20, fontWeight: '700', color: colors.textPrimary, marginBottom: 3 },
+  studySubtitle: { fontSize: 13, color: colors.textMuted },
   downloadBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: 3 },
-  downloadText: { fontSize: 14, color: '#4a90e2', fontWeight: '600' },
+  downloadText: { fontSize: 14, color: colors.brand, fontWeight: '600' },
 });

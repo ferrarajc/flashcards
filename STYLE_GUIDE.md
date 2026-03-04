@@ -27,16 +27,21 @@
 ## Colors
 
 ### Primary palette
-- **Primary blue**: `#4a90e2` — buttons, links, back card background
-- **App background**: `#f5f5f5`
+- **Brand indigo**: `#4F46E5` — app bar, deck accent strips, links, active states
+- **Accent amber**: `#F59E0B` — primary CTA buttons ("+ New deck"), "Cards" in wordmark
+- **App background**: `#F5F4FF` — light lavender (ScreenContainer)
 - **Card background (front)**: `#ffffff`
-- **Card background (back)**: `#4a90e2`
+- **Card background (back / learn answer)**: `#5b6cdb`
+- **Primary text**: `#1E1B4B` — deep indigo; used on key headings and deck names
 
 ### Secondary palette
-- **Destructive / delete**: `#cc3333`
+- **Destructive / delete**: `#e05252`
 - **Secondary text**: `#888888`
 - **Divider**: `#e0e0e0`
-- **Dark button (quiz Next)**: `#333333`
+- **Success / got it**: `#4caf50`
+- **Trophy — bronze**: `#cd7f32`
+- **Trophy — silver**: `#a8a9ad`
+- **Trophy — gold**: `#ffd700`
 
 ---
 
@@ -51,23 +56,22 @@
 - **Main content area**: max 680px, centered within available space
 - **Phone**: full width (no max-width cap)
 
+### App bar
+- **Shown on**: every screen except fullscreen flows (`headerShown: false`)
+- **Height**: 58px
+- **Background**: brand indigo `#4F46E5`
+- **Wordmark**: "Flashy" in white + "Cards" in amber `#F59E0B`, 22px, weight 800; always centered; tapping navigates to Home
+- **Left slot**: white back arrow (`Ionicons arrow-back`, 24px) on inner screens; white hamburger (`Ionicons menu`, 26px) on Home/phone; empty on Home/desktop
+- **Right slot**: reserved for future actions
+- **Component**: `components/AppHeader.js` (exports `BRAND` and `ACCENT` constants)
+
 ### Sidebar
 - **Width**: 240px
-- **Phone**: hidden by default, opened via hamburger icon in nav bar (`drawerType="front"`)
-- **Tablet / Desktop**: permanently visible (`drawerType="permanent"`), AppHeader spans full width above it
-- **Nav items**: My decks (→ Home), New deck (→ CreateDeck)
-- **Item text**: 16px, semibold
-- **New deck text color**: primary blue `#4a90e2`
-
-### Header
-- **Shown on**: tablet and desktop only — phone uses default nav bar with "FlashyCards" text title
-- **Height**: 100px
-- **Background**: `#fcfdfc` (matches logo background)
-- **Bottom border**: 1px, `#e0e0e0`
-- **Logo**: left-aligned, 380×88px, tapping navigates to Home
-- **Right side**: reserved for global nav links (future)
-- **User avatar**: far right of header (future)
-- **Logo file**: `assets/Logo.png`
+- **Phone**: hidden by default, opened via hamburger in app bar
+- **Tablet / Desktop**: permanently visible below the app bar
+- **Sections**: "MY DECKS" section label (10px, uppercase, letter-spacing 1.2) above nav items
+- **Nav items**: icon + label, 15px semibold; My decks (`albums-outline`) → Home; New deck (`add-circle-outline`) → NewDeck
+- **Icon color**: brand indigo `#4F46E5`
 
 ### Buttons
 - **Never full width** — buttons should be sized to their content or capped with a max-width
@@ -78,11 +82,31 @@
 - **Height**: 45% of screen height
 - Uses `useWindowDimensions` (not static `Dimensions`) so it responds to window size
 
-### Learn mode (quiz)
-- **Fullscreen** — no nav bar (`headerShown: false`), no sidebar, distraction-free
-- **Close button**: top-left corner, ✕ glyph, 20px, color `#888`, padding 8px
-- **Exit confirmation**: Alert — "Exit session?" / "Your progress won't be saved." — buttons: Keep going (cancel), Exit (destructive)
-- Wrapped in `SafeAreaView` to respect notch / dynamic island on iPhone
+### Learn mode
+- **Fullscreen** — no app bar (`headerShown: false`), no sidebar, distraction-free
+- **Close button**: `Ionicons close`, 24px, color `#aaa`, absolute top-right of header; opens confirmation modal (not Alert — unreliable on web)
+- **Exit confirmation modal**: title "🐔 Bok bok!", body "Giving up already? Your progress on this round won't be saved."; buttons: "Keep going" (indigo filled), "Quit" (red outline)
+- Wrapped in `SafeAreaView`
+
+### Learn mode — deck info box
+- Bordered box (`borderWidth: 1.5`, `borderColor: #d0d0d0`, `borderRadius: 12`, white bg) centered in header
+- Contains: deck name (17px, weight 700) / subtitle "{N} cards, {N} left to learn" (12px, `#aaa`, `numberOfLines={1}`) / trophy icon row
+- Trophies: `Ionicons trophy` (filled+colored) or `trophy-outline` (grey `#ccc`); earned trophies show tooltip on hover (web) or tap (mobile)
+- Trophy tooltip: floats above icon, white card with shadow, trophy name (14px bold) + description (12px muted)
+
+### Learn mode — prompt
+- Typewriter animation: types character-by-character at 75ms/char (~3s for a 40-char tip)
+- Pauses 10s after full message, then advances to next tip; rotation is continuous across card changes
+- Tips source: `docs/memory-tips.md` (keep in sync with `MEMORY_TIPS` array in `LearnScreen.js`)
+- Answer face shows "Did you get it?" instantly (no typewriter)
+
+### Learn mode — layout (top to bottom)
+1. Header: deck info box + close button
+2. Prompt row
+3. Flashcard (question or answer face)
+4. Action buttons (Skip / Flip on question face; I didn't get it / I got it on answer face)
+5. Horizontal rule divider
+6. Stats row: "I didn't get" (red) / learned % (large, center) / "I did get" (green)
 
 ---
 
@@ -111,17 +135,18 @@
 ## Components
 
 ### Deck list item
-- Left side (tappable): navigates into quiz; tapping also clears the New badge
+- Left accent strip: 4px wide, brand indigo `#4F46E5`, full card height (`alignSelf: 'stretch'`); card uses `overflow: 'hidden'`
+- Left side (tappable): navigates to ModeSelect; tapping also clears the New badge
 - Right side: ellipsis (•••) menu button separated by a vertical divider
 - Ellipsis font size: 14px
-- Deck name: 1 line max, truncates with ellipsis (`numberOfLines={1}`)
-- Meta row (below name): card count + New badge (if applicable)
+- Deck name: 17px, weight 700, color `#1E1B4B`; 1 line max, truncates with ellipsis
+- Meta row (below name): card count + New badge + earned trophy icons (if applicable)
 
 ### New badge
 - Shown on decks that have never been opened for a Learn session
 - Clears on first Learn session (via action sheet or card tap)
 - Auto-expires after 7 days from `createdAt` timestamp
-- Style: blue (`#4a90e2`) pill, white text, 11px bold, `paddingHorizontal: 8`, `borderRadius: 10`
+- Style: brand indigo (`#4F46E5`) pill, white text, 11px bold, `paddingHorizontal: 8`, `borderRadius: 10`
 - Position: meta row, alongside card count
 
 ### Action sheet (ellipsis menu)
