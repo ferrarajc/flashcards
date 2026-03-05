@@ -22,7 +22,11 @@ const SPREADSHEET_TYPES = [
 ];
 
 function deriveNameFromFilename(filename) {
-  return filename.replace(/\.[^/.]+$/, '').trim();
+  return filename
+    .replace(/\.[^/.]+$/, '')        // strip extension
+    .replace(/[-_]+/g, ' ')          // hyphens/underscores → spaces
+    .replace(/\b\w/g, c => c.toUpperCase())  // title case
+    .trim();
 }
 
 export default function UploadScreen({ navigation }) {
