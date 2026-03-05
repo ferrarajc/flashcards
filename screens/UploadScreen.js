@@ -14,11 +14,10 @@ async function readFileAsString(uri) {
   return FileSystem.readAsStringAsync(uri, { encoding: 'utf8' });
 }
 
+// Only text-based formats PapaParse can actually parse; binary .xls/.xlsx is not supported
 const SPREADSHEET_TYPES = [
   'text/csv',
   'text/tab-separated-values',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ];
 
 function deriveNameFromFilename(filename) {
@@ -71,7 +70,7 @@ export default function UploadScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Upload a spreadsheet</Text>
-      <Text style={styles.sub}>Supports .csv, .xls, .tsv, etc.</Text>
+      <Text style={styles.sub}>Supports .csv and .tsv files</Text>
       <Text style={[styles.sub, { marginBottom: 24 }]}>
         {'First column = Front of card\nSecond column = Back of card'}
       </Text>
