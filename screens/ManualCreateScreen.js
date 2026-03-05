@@ -191,6 +191,7 @@ export default function ManualCreateScreen({ navigation }) {
 
         {/* ── Card area ── */}
         <View
+          testID="cardArea"
           style={[styles.cardArea, { maxHeight: cardAreaMaxHeight }]}
           onLayout={e => setCardWidth(e.nativeEvent.layout.width)}
         >

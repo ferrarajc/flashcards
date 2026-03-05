@@ -3,7 +3,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import HomeScreen from './screens/HomeScreen';
-import CreateDeckScreen from './screens/CreateDeckScreen';
 import NewDeckScreen from './screens/NewDeckScreen';
 import ManualCreateScreen from './screens/ManualCreateScreen';
 import UploadScreen from './screens/UploadScreen';
@@ -27,7 +26,6 @@ export default function App() {
       >
         <Stack.Screen name="Home"          component={HomeScreen} />
         <Stack.Screen name="NewDeck"       component={NewDeckScreen} />
-        <Stack.Screen name="CreateDeck"    component={CreateDeckScreen} />
         <Stack.Screen name="Upload"        component={UploadScreen} />
         <Stack.Screen name="ModeSelect"    component={ModeSelectScreen} />
         <Stack.Screen name="EditDeck"      component={EditDeckScreen} />

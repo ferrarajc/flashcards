@@ -17,8 +17,6 @@ jest.spyOn(Alert, 'alert');
 const SPREADSHEET_TYPES = [
   'text/csv',
   'text/tab-separated-values',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ];
 
 function makeNavigation() {
@@ -51,7 +49,7 @@ describe('UploadScreen', () => {
 
     it('shows supported file types hint', () => {
       const { getByText } = render(<UploadScreen navigation={makeNavigation()} />);
-      expect(getByText('Supports .csv, .xls, .tsv, etc.')).toBeTruthy();
+      expect(getByText('Supports .csv and .tsv files')).toBeTruthy();
     });
 
     it('shows the Choose file button', () => {
