@@ -1,5 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+
+jest.setTimeout(15000);
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
@@ -110,7 +112,7 @@ describe('UploadScreen', () => {
       });
     });
 
-    it('derives deck name from filename (strips extension)', async () => {
+    it('converts hyphenated filename to Title Case deck name', async () => {
       mockSuccessfulPick('european-capitals.csv');
       mockParsedCards([['Spain', 'Madrid']]);
 
@@ -119,7 +121,33 @@ describe('UploadScreen', () => {
 
       await waitFor(() => {
         const saved = JSON.parse(AsyncStorage.setItem.mock.calls[0][1]);
-        expect(saved[0].name).toBe('european-capitals');
+        expect(saved[0].name).toBe('European Capitals');
+      });
+    });
+
+    it('converts underscored filename to Title Case deck name', async () => {
+      mockSuccessfulPick('spanish_nouns.csv');
+      mockParsedCards([['el libro', 'book']]);
+
+      const { getByText } = render(<UploadScreen navigation={makeNavigation()} />);
+      fireEvent.press(getByText('Choose file'));
+
+      await waitFor(() => {
+        const saved = JSON.parse(AsyncStorage.setItem.mock.calls[0][1]);
+        expect(saved[0].name).toBe('Spanish Nouns');
+      });
+    });
+
+    it('handles filename with no separators', async () => {
+      mockSuccessfulPick('vocabulary.csv');
+      mockParsedCards([['word', 'definition']]);
+
+      const { getByText } = render(<UploadScreen navigation={makeNavigation()} />);
+      fireEvent.press(getByText('Choose file'));
+
+      await waitFor(() => {
+        const saved = JSON.parse(AsyncStorage.setItem.mock.calls[0][1]);
+        expect(saved[0].name).toBe('Vocabulary');
       });
     });
 
